@@ -12,10 +12,10 @@ for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); d
 # Generate Pile-Up from Sorted BAM
 ## Individual Command
 ```bash
-samtools mpileup -A -aa -d 0 -Q 0 --reference NC045512.fas SORTED.BAM > PILEUP.TXT
+samtools mpileup -A -aa -d 0 -Q 0 --reference NC045512.fas SORTED.BAM | pigz -9 -p 16 > PILEUP.TXT.GZ
 ```
 
 ## Batch Command
 ```bash
-{ time parallel --jobs 16 samtools mpileup -A -aa -d 0 -Q 0 --reference ../ref/NC045512.fas {}.sorted.bam ">" {}.sorted.pileup.txt "2>" {}.log.2.pileup.log ::: $(ls *.fastq | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq) ; } 2> pileup.time.log
+{ time parallel --jobs 16 samtools mpileup -A -aa -d 0 -Q 0 --reference ../ref/NC045512.fas {}.sorted.bam "|" pigz -9 -p 16 ">" {}.sorted.pileup.txt.gz "2>" {}.log.2.pileup.log ::: $(ls *.fastq | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq) ; } 2> pileup.time.log
 ```
