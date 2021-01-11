@@ -12,7 +12,7 @@ for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); d
 # Step 2: Generate Pile-Up from Sorted BAM
 ## Individual Command
 ```bash
-samtools mpileup -A -aa -d 0 -Q 0 --reference NC045512.fas SORTED.BAM | PILEUP.TXT
+samtools mpileup -A -aa -d 0 -Q 0 --reference NC045512.fas SORTED.BAM > PILEUP.TXT
 ```
 
 ## Batch Command
