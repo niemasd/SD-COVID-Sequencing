@@ -17,5 +17,5 @@ samtools mpileup -A -aa -d 0 -Q 0 --reference NC045512.fas SORTED.BAM | pigz -9 
 
 ## Batch Command
 ```bash
-{ time parallel --jobs 64 samtools mpileup -A -aa -d 0 -Q 0 --reference ../ref/NC045512.fas {}.sorted.bam "|" pigz -9 -p 64 ">" {}.sorted.pileup.txt.gz "2>" {}.log.2.pileup.log ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq) ; } 2> pileup.time.log
+{ time parallel --jobs 64 samtools mpileup -A -aa -d 0 -Q 0 --reference ../ref/NC045512.fas {}.sorted.bam "|" pigz -9 -p 64 ">" {}.sorted.pileup.txt.gz ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq) ; } 2> pileup.time.log
 ```
