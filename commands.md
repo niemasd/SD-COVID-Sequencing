@@ -1,3 +1,25 @@
+# Step 1: Map Reads and Sort
+## Individual Command
+```bash
+minimap2 -t THREADS -a -x map-ont ../ref/NC045512.fas.mmi READ1.FASTQ.GZ READ2.FASTQ.GZ | samtools sort --threads THREADS -o SORTED.BAM
+```
+
+## Batch Command
+```bash
+for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( minimap2 -t THREADS -a -x map-ont ../ref/NC045512.fas.mmi $s*.fastq.gz | samtools sort --threads THREADS -o $s.sorted.bam ) ; } 2> $s.log.1.map.log ; done
+```
+
+# Step 2: Generate Pile-Up from Sorted BAM
+## Individual Command
+```bash
+samtools mpileup -A -aa -d 0 -Q 0 --reference NC045512.fas SORTED.BAM | PILEUP.TXT
+```
+
+## Batch Command
+```bash
+parallel --jobs THREADS "{" time "(" samtools mpileup -A -aa -d 0 -Q 0 --reference ../ref/NC045512.fas {}.sorted.bam ")" ";" "}" ">" {}.sorted.pileup.txt "2>" {}.log.2.pileup.log ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
+```
+
 # Original Snakefile
 ```python
 import os
@@ -315,26 +337,4 @@ rule analyse_contamination:
         "{out_dir}/barcode_counts/illumina/contamination_report.html"
     script: 
         "scripts/analyse_contamination.py"
-```
-
-# Map Reads and Sort
-## Individual Command
-```bash
-minimap2 -t 64 -a -x map-ont ../ref/NC045512.fas.mmi READ1.FASTQ.GZ READ2.FASTQ.GZ | samtools sort --threads 64 -o SORTED.BAM
-```
-
-## Batch Command
-```bash
-for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( minimap2 -t 64 -a -x map-ont ../ref/NC045512.fas.mmi $s*.fastq.gz | samtools sort --threads 64 -o $s.sorted.bam ) ; } 2> $s.log.1.map.log ; done
-```
-
-# Generate Pile-Up from Sorted BAM
-## Individual Command
-```bash
-samtools mpileup -A -aa -d 0 -Q 0 --reference NC045512.fas SORTED.BAM | PILEUP.TXT
-```
-
-## Batch Command
-```bash
-{ time parallel --jobs 64 samtools mpileup -A -aa -d 0 -Q 0 --reference ../ref/NC045512.fas {}.sorted.bam ">" {}.sorted.pileup.txt "2>" {}.log.2.pileup.log ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq) ; } 2> pileup.time.log
 ```
