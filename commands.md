@@ -35,12 +35,12 @@ bedtools bamtobed -i PRIMERS.BAM > PRIMERS.BED
 
 ## Individual Command
 ```bash
-minimap2 -t THREADS -a -x map-ont ../ref/NC045512.fas.mmi READ1.FASTQ.GZ READ2.FASTQ.GZ | samtools sort --threads THREADS -o SORTED.BAM
+minimap2 -t THREADS -a -x map-ont ../ref/NC_045512.2.fas.mmi READ1.FASTQ.GZ READ2.FASTQ.GZ | samtools sort --threads THREADS -o SORTED.BAM
 ```
 
 ## Batch Command
 ```bash
-for s in $(ls X.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( minimap2 -t THREADS -a -x map-ont ../ref/NC045512.fas.mmi $s*.fastq.gz | samtools sort --threads THREADS -o $s.sorted.bam ) ; } 2> $s.log.1.map.log ; done
+for s in $(ls X.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( minimap2 -t THREADS -a -x map-ont ../ref/NC_045512.2.fas.mmi $s*.fastq.gz | samtools sort --threads THREADS -o $s.sorted.bam ) ; } 2> $s.log.1.map.log ; done
 ```
 
 # Step 2: Trim Sorted BAM (resulting in unsorted trimmed BAM)
@@ -67,7 +67,7 @@ ivar trim -e -i SORTED.BAM -b PRIMERS.bed -p TRIMMED_PREFIX
 
 ## Batch Command
 ```bash
-TODO
+parallel --jobs THREADS "{" time "(" ivar trim -e -i {}.sorted.bam -b ../primers/swift/sarscov2_v2_primers.bed -p {}.trimmed ")" ";" "}" "2>&1" ">" {}.log.3.pileup.log ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
 ```
 
 # Step 3: Sort Trimmed BAM
