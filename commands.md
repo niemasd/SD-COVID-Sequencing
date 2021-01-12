@@ -52,12 +52,11 @@ ivar trim -e -i SORTED.BAM -b PRIMERS.bed -p TRIMMED_PREFIX
 ```
 * `TRIMMED_PREFIX` is the output file minus the `.bam` extension (e.g. `-p sample_name.trimmed` would result in `sample_name.trimmed.bam`)
 * `-e` is "Include reads with no primers"
-    * In the `Snakefile`, `trim_reads_ont` doesn't have it, but `trim_reads_illumina` has it
+    * In the `Snakefile`, `trim_reads_illumina` has it, but `trim_reads_ont` doesn't have it
         * `trim_reads_illumina` has a comment `# Add -e if nextera used`
     * I don't see why not to include reads with no primers, so I'll keep `-e` unless someone tells me otherwise
 * `-q` is the minimum quality score
-    * By default, it's 20
-    * In the `Snakefile`, for `trim_reads_ont`, it's 5 (i.e., `-q 5`)
+    * In the `Snakefile`, `trim_reads_illumina` uses the default (whichi s 20), but `trim_reads_ont` uses it's 5
 * The `Snakefile` and cookbook both say to sort the `BAM` after, but if it was sorted before, shouldn't it be sorted after trimming...?
     * Maybe the length trimmed can vary, so if read *x* started earlier than read *y* but more was cut off the beginning, it should actually come after read *y*?
     * If so, maybe I'll output to a temporary file (e.g. `-p sample_name.trimmed.bam`) and then have the final output be a different file (e.g. `sample_name.trimmed.sorted.bam`)
@@ -114,6 +113,30 @@ cat PILEUP.TXT | ivar variants -r REFERENCE.FAS -g REFERENCE.GFF -p VARIANTS.TSV
 * `-m` is the minimum read depth to call variants
     * The default is 0, but the only place in the `Snakefile` where `ivar variants` is called uses 10
 * Potentially gzip the output TSV files to save space?
+
+## Batch Command
+```bash
+TODO
+```
+
+# Step 6: Call Consensus Sequence from Pile-Up
+* **Input:** Pile-up (`X.pileup.txt` or `X.pileup.txt.gz`)
+* **Ouptut:** Consensus Sequence (`X.consensus.fas` or `X.consensus.fas.gz`)
+
+## Individual Command
+```bash
+cat PILEUP.TXT | ivar consensus -p CONSENSUS.FAS -m 10 -n N -t 0.5
+```
+* `-m` is the minimum depth to call consensus
+    * Default is 10, so not sure why they explicitly specify `-m 10` in the `Snakefile`
+* `-n` is the ambiguous character (`N` or `-`) to print in sites that have lower than `-m` coverage
+    * Default is `N`, so not sure why they explicitly specify `-n N` in the `Snakefile`
+* `-t` is the minimum frequency threshold to call the consensus
+    * In the `Snakefile`, `call_consensus_illumina` uses 0.5, but `call_consensus_ont` uses the default (which is 0)
+* `-q` is the minimum quality score threshold to count a given base
+    * In the `Snakefile`, `call_consensus_illumina` uses the default (which is 20), but `call_consensus_ont` uses 5
+* This outputs a log file to standard output
+    * When I run it in batch, I should redirect standard error to standard output (`2>&1`) to get `time` output and the `ivar consensus` log into the same log file
 
 ## Batch Command
 ```bash
