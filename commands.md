@@ -67,7 +67,7 @@ ivar trim -e -i SORTED.BAM -b PRIMERS.bed -p TRIMMED_PREFIX
 
 ## Batch Command
 ```bash
-parallel --jobs THREADS "{" time "(" ivar trim -e -i {}.sorted.bam -b ../primers/swift/sarscov2_v2_primers.bed -p {}.trimmed ")" ";" "}" "2>&1" ">" {}.log.2.trim.log ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
+parallel --jobs THREADS "{" time "(" ivar trim -e -i {}.sorted.bam -b ../primers/swift/sarscov2_v2_primers.bed -p {}.trimmed ")" ";" "}" ">" {}.log.2.trim.log "2>&1" ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
 ```
 
 # Step 3: Sort Trimmed BAM
