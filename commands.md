@@ -1,3 +1,33 @@
+# General Tips/Resources
+* [This cookbook](https://github.com/andersen-lab/paper_2018_primalseq-ivar/blob/master/cookbook/CookBook.ipynb) might be useful
+
+# Step 0: Preparation
+## Index the Reference Genome
+```bash
+minimap2 -t THREADS -d REFERENCE_GENOME.FAS.MMI REFERENCE_GENOME.FAS
+```
+
+This analysis is using [NC045512](https://www.ncbi.nlm.nih.gov/nuccore/NC_045512.2?report=fasta) as the reference genome, so specifically:
+
+```bash
+minimap2 -t THREADS -d NC045512.fas.mmi NC045512.fas
+```
+
+## Generate Primer Coordinate BED
+Example from the [cookboox](https://github.com/andersen-lab/paper_2018_primalseq-ivar/blob/master/cookbook/CookBook.ipynb) was the following:
+
+```bash
+bwa mem -k 5 -T 16 db/PRV.fa db/zika_primers.fa | samtools view -b -F 4 > db/zika_primers.bam
+bedtools bamtobed -i db/zika_primers.bam > db/zika_primers.bed
+```
+
+I wonder if Minimap2 would be fine instead of BWA-MEM? So I propose the following:
+
+```bash
+minimap2 -t THREADS -a -x map-ont REFERENCE_GENOME.FAS.MMI PRIMERS.FAS | samtools view -b -F 4 > PRIMERS.BAM
+bedtools bamtobed -i PRIMERS.BAM > PRIMERS.BED
+```
+
 # Step 1: Map Reads and Sort
 ## Individual Command
 ```bash
@@ -9,15 +39,36 @@ minimap2 -t THREADS -a -x map-ont ../ref/NC045512.fas.mmi READ1.FASTQ.GZ READ2.F
 for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( minimap2 -t THREADS -a -x map-ont ../ref/NC045512.fas.mmi $s*.fastq.gz | samtools sort --threads THREADS -o $s.sorted.bam ) ; } 2> $s.log.1.map.log ; done
 ```
 
-# Step 2: Generate Pile-Up from Sorted BAM
+# Step 2: Trim Sorted BAM
 ## Individual Command
 ```bash
-samtools mpileup -A -aa -d 0 -Q 0 --reference NC045512.fas SORTED.BAM > PILEUP.TXT
+ivar trim -i SORTED.BAM -b PRIMERS.bed -p TRIMMED_PREFIX -q 5 && \
+samtools sort --threads THREADS -o TRIMMED_SORTED.BAM TRIMMED_PREFIX.BAM && \
+rm TRIMMED_PREFIX.BAM
+```
+* `TRIMMED_PREFIX` is the output file minus the `.bam` extension (e.g. `-p sample_name.trimmed` would result in `sample_name.trimmed.bam`)
+* `-q` is the minimum quality score (default is 20, but the `Snakefile` I was given has 5)
+* The `Snakefile` and cookbook both say to sort the `BAM` after, but if it was sorted before, shouldn't it be sorted after trimming...?
+    * Maybe the length trimmed can vary, so if read *x* started earlier than read *y* but more was cut off the beginning, it should actually come after read *y*?
+    * If so, maybe I'll output to a temporary file (e.g. `-p sample_name.trimmed.bam`) and then have the final output be a different file (e.g. `sample_name.trimmed.sorted.bam`)
+        * If I do this, I should probably just delete the unsorted trimmed BAM to save space (the sorted BAM has all the same info + it's sorted)
+* Also, why does `ivar trim` need a sorted BAM?
+    * Sorting doesn't take much extra time (I just pipe `minimap2`'s output to `samtools sort`), so not a big deal, but unclear why that pipe is a step
+
+## Batch Command
+```bash
+TODO
+```
+
+# Step 3: Generate Pile-Up from Trimmed Sorted BAM
+## Individual Command
+```bash
+samtools mpileup -A -aa -d 0 -Q 0 --reference REFERENCE.FAS TRIMMED_SORTED.BAM > PILEUP.TXT
 ```
 
 ## Batch Command
 ```bash
-parallel --jobs THREADS "{" time "(" samtools mpileup -A -aa -d 0 -Q 0 --reference ../ref/NC045512.fas {}.sorted.bam ")" ";" "}" ">" {}.sorted.pileup.txt "2>" {}.log.2.pileup.log ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
+parallel --jobs THREADS "{" time "(" samtools mpileup -A -aa -d 0 -Q 0 --reference ../ref/NC045512.fas {}.trimmed.sorted.bam ")" ";" "}" ">" {}.trimmed.sorted.pileup.txt "2>" {}.log.3.pileup.log ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
 ```
 
 # Original Snakefile
