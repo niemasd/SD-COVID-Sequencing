@@ -143,6 +143,21 @@ cat PILEUP.TXT | ivar consensus -p CONSENSUS.FAS -m 10 -n N -t 0.5
 TODO
 ```
 
+# Step 7: Call Depth (supplemental summary stats)
+* **Input:** Sorted Trimmed BAM (`X.trimmed.sorted.bam`)
+* **Output:** Depth (`X.trimmed.sorted.depth.txt`)
+
+## Individual Command
+```bash
+samtools depth -d 0 -Q 0 -q 0 -aa TRIMMED_SORTED.BAM > DEPTH.TXT
+```
+* Potentially gzip the output TXT files to save space?
+
+## Batch Command
+```bash
+TODO
+```
+
 # Original Snakefile
 ```python
 import os
