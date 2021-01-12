@@ -114,6 +114,7 @@ cat PILEUP.TXT | ivar variants -r REFERENCE.FAS -g REFERENCE.GFF -p VARIANTS.TSV
 * `-m` is the minimum read depth to call variants
     * The default is 0, but the only place in the `Snakefile` where `ivar variants` is called uses 10
 * Potentially gzip the output TSV files to save space?
+    * They're tiny (less than 1 MB each), so not worth it
 
 ## Batch Command
 ```bash
