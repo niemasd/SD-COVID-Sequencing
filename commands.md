@@ -29,8 +29,8 @@ bedtools bamtobed -i PRIMERS.BAM > PRIMERS.BED
 ```
 
 # Step 1: Map Reads and Sort
-* **Input:** FASTQ (or FASTQ.GZ) file(s)
-* **Output:** Sorted Untrimmed BAM
+* **Input:** FASTQ (or FASTQ.GZ) file(s) (`*.fastq` or `*.fastq.gz`)
+* **Output:** Sorted Untrimmed BAM (`*.sorted.bam`)
 
 ## Individual Command
 ```bash
@@ -43,8 +43,8 @@ for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); d
 ```
 
 # Step 2: Trim Sorted BAM (resulting in unsorted trimmed BAM)
-* **Input:** Sorted Untrimmed BAM
-* **Output:** Unsorted Trimmed BAM
+* **Input:** Sorted Untrimmed BAM (`*.sorted.bam`)
+* **Output:** Unsorted Trimmed BAM (`*.trimmed.bam`)
 
 ## Individual Command
 ```bash
@@ -71,8 +71,8 @@ TODO
 ```
 
 # Step 3: Sort Trimmed BAM
-* **Input:** Unsorted Trimmed BAM
-* **Output:** Sorted Trimmed BAM
+* **Input:** Unsorted Trimmed BAM (`*.trimmed.bam`)
+* **Output:** Sorted Trimmed BAM (`*.trimmed.sorted.bam`)
 
 ## Individual Command
 ```bash
@@ -86,8 +86,8 @@ TODO
 ```
 
 # Step 4: Generate Pile-Up from Trimmed Sorted BAM
-* **Input:** Sorted Trimmed BAM
-* **Output:** Pile-up
+* **Input:** Sorted Trimmed BAM (`*.trimmed.sorted.bam`)
+* **Output:** Pile-up (`*.pileup.txt` or `*.pileup.txt.gz`)
 
 ## Individual Command
 ```bash
