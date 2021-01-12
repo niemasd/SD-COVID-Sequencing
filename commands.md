@@ -29,8 +29,8 @@ bedtools bamtobed -i PRIMERS.BAM > PRIMERS.BED
 ```
 
 # Step 1: Map Reads and Sort
-* **Input:** FASTQ (or FASTQ.GZ) file(s) (`*.fastq` or `*.fastq.gz`)
-* **Output:** Sorted Untrimmed BAM (`*.sorted.bam`)
+* **Input:** FASTQ (or FASTQ.GZ) file(s) (`X.fastq` or `X.fastq.gz`)
+* **Output:** Sorted Untrimmed BAM (`X.sorted.bam`)
 
 ## Individual Command
 ```bash
@@ -39,12 +39,12 @@ minimap2 -t THREADS -a -x map-ont ../ref/NC045512.fas.mmi READ1.FASTQ.GZ READ2.F
 
 ## Batch Command
 ```bash
-for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( minimap2 -t THREADS -a -x map-ont ../ref/NC045512.fas.mmi $s*.fastq.gz | samtools sort --threads THREADS -o $s.sorted.bam ) ; } 2> $s.log.1.map.log ; done
+for s in $(ls X.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( minimap2 -t THREADS -a -x map-ont ../ref/NC045512.fas.mmi $s*.fastq.gz | samtools sort --threads THREADS -o $s.sorted.bam ) ; } 2> $s.log.1.map.log ; done
 ```
 
 # Step 2: Trim Sorted BAM (resulting in unsorted trimmed BAM)
-* **Input:** Sorted Untrimmed BAM (`*.sorted.bam`)
-* **Output:** Unsorted Trimmed BAM (`*.trimmed.bam`)
+* **Input:** Sorted Untrimmed BAM (`X.sorted.bam`)
+* **Output:** Unsorted Trimmed BAM (`X.trimmed.bam`)
 
 ## Individual Command
 ```bash
@@ -71,8 +71,8 @@ TODO
 ```
 
 # Step 3: Sort Trimmed BAM
-* **Input:** Unsorted Trimmed BAM (`*.trimmed.bam`)
-* **Output:** Sorted Trimmed BAM (`*.trimmed.sorted.bam`)
+* **Input:** Unsorted Trimmed BAM (`X.trimmed.bam`)
+* **Output:** Sorted Trimmed BAM (`X.trimmed.sorted.bam`)
 
 ## Individual Command
 ```bash
@@ -86,20 +86,38 @@ TODO
 ```
 
 # Step 4: Generate Pile-Up from Trimmed Sorted BAM
-* **Input:** Sorted Trimmed BAM (`*.trimmed.sorted.bam`)
-* **Output:** Pile-up (`*.pileup.txt` or `*.pileup.txt.gz`)
+* **Input:** Sorted Trimmed BAM (`X.trimmed.sorted.bam`)
+* **Output:** Pile-up (`X.pileup.txt` or `X.pileup.txt.gz`)
 
 ## Individual Command
 ```bash
 samtools mpileup -A -aa -d 0 -Q 0 --reference REFERENCE.FAS TRIMMED_SORTED.BAM > PILEUP.TXT
 ```
 * I think everything that depends on the pile-up will stream it from standard input
-    * Thus, to save space, `gzip` compression makes sense (e.g. `pigz -9 -p THREADS`)
+    * Thus, to save space, gzip compression makes sense (e.g. `pigz -9 -p THREADS`)
 * Because there's such huge variance in how long the pile-up generation takes across files, it makes sense to use a 64 core machine and do all the pile-ups in parallel, and once most of them are done, compress some of the finished ones using multithreaded `pigz` on the idling cores
 
 ## Batch Command
 ```bash
 parallel --jobs THREADS "{" time "(" samtools mpileup -A -aa -d 0 -Q 0 --reference ../ref/NC045512.fas {}.trimmed.sorted.bam ")" ";" "}" ">" {}.trimmed.sorted.pileup.txt "2>" {}.log.3.pileup.log ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
+```
+
+# Step 5: Call Variants from Pile-Up
+* **Input:** Pile-up (`X.pileup.txt` or `X.pileup.txt.gz`)
+* **Output:** Variants (`X.variants.tsv`)
+
+## Individual Command
+```bash
+cat PILEUP.TXT | ivar variants -r REFERENCE.FAS -g REFERENCE.GFF -p VARIANTS.TSV -m 10
+```
+* If pile-up files are gzipped, use `zcat PILEUP.TXT.GZ` instead of `cat PILEUP.TXT`
+* `-m` is the minimum read depth to call variants
+    * The default is 0, but the only place in the `Snakefile` where `ivar variants` is called uses 10
+* Potentially gzip the output TSV files to save space?
+
+## Batch Command
+```bash
+TODO
 ```
 
 # Original Snakefile
