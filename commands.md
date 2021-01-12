@@ -1,5 +1,6 @@
 # General Tips/Resources
-* [This cookbook](https://github.com/andersen-lab/paper_2018_primalseq-ivar/blob/master/cookbook/CookBook.ipynb) might be useful
+* This [cookbook](https://github.com/andersen-lab/paper_2018_primalseq-ivar/blob/master/cookbook/CookBook.ipynb) might be useful
+* The [iVar Manual](https://github.com/andersen-lab/ivar/blob/master/docs/MANUAL.md) might also be useful
 
 # Step 0: Preparation
 ## Index the Reference Genome
