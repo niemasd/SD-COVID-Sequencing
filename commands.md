@@ -159,8 +159,6 @@ samtools depth -d 0 -Q 0 -q 0 -aa TRIMMED_SORTED.BAM > DEPTH.TXT
 ## Batch Command (64 threads)
 ```bash
 parallel --jobs 64 "{" time "(" samtools depth -d 0 -Q 0 -q 0 -aa {}.trimmed.sorted.bam ")" ";" "}" ">" {}.trimmed.sorted.depth.txt "2>" {}.log.7.depth.log ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
-
-parallel --jobs 64 "{" time "(" samtools mpileup -A -aa -d 0 -Q 0 --reference ../ref/NC_045512.2.fas {}.trimmed.sorted.bam ")" ";" "}" ">" {}.trimmed.sorted.pileup.txt "2>" {}.log.4.pileup.log ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
 ```
 
 # Original Snakefile
