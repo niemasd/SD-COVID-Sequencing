@@ -48,10 +48,16 @@ for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); d
 
 ## Individual Command
 ```bash
-ivar trim -i SORTED.BAM -b PRIMERS.bed -p TRIMMED_PREFIX -q 5
+ivar trim -e -i SORTED.BAM -b PRIMERS.bed -p TRIMMED_PREFIX
 ```
 * `TRIMMED_PREFIX` is the output file minus the `.bam` extension (e.g. `-p sample_name.trimmed` would result in `sample_name.trimmed.bam`)
-* `-q` is the minimum quality score (default is 20, but the `Snakefile` I was given has 5)
+* `-e` is "Include reads with no primers"
+    * In the `Snakefile`, `trim_reads_ont` doesn't have it, but `trim_reads_illumina` has it
+        * `trim_reads_illumina` has a comment `# Add -e if nextera used`
+    * I don't see why not to include reads with no primers, so I'll keep `-e` unless someone tells me otherwise
+* `-q` is the minimum quality score
+    * By default, it's 20
+    * In the `Snakefile`, for `trim_reads_ont`, it's 5 (i.e., `-q 5`)
 * The `Snakefile` and cookbook both say to sort the `BAM` after, but if it was sorted before, shouldn't it be sorted after trimming...?
     * Maybe the length trimmed can vary, so if read *x* started earlier than read *y* but more was cut off the beginning, it should actually come after read *y*?
     * If so, maybe I'll output to a temporary file (e.g. `-p sample_name.trimmed.bam`) and then have the final output be a different file (e.g. `sample_name.trimmed.sorted.bam`)
