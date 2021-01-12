@@ -29,6 +29,9 @@ bedtools bamtobed -i PRIMERS.BAM > PRIMERS.BED
 ```
 
 # Step 1: Map Reads and Sort
+* **Input:** FASTQ (or FASTQ.GZ) file(s)
+* **Output:** Sorted Untrimmed BAM
+
 ## Individual Command
 ```bash
 minimap2 -t THREADS -a -x map-ont ../ref/NC045512.fas.mmi READ1.FASTQ.GZ READ2.FASTQ.GZ | samtools sort --threads THREADS -o SORTED.BAM
@@ -40,6 +43,9 @@ for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); d
 ```
 
 # Step 2: Trim Sorted BAM (resulting in unsorted trimmed BAM)
+* **Input:** Sorted Untrimmed BAM
+* **Output:** Unsorted Trimmed BAM
+
 ## Individual Command
 ```bash
 ivar trim -i SORTED.BAM -b PRIMERS.bed -p TRIMMED_PREFIX -q 5
@@ -59,6 +65,9 @@ TODO
 ```
 
 # Step 3: Sort Trimmed BAM
+* **Input:** Unsorted Trimmed BAM
+* **Output:** Sorted Trimmed BAM
+
 ## Individual Command
 ```bash
 samtools sort --threads THREADS -o TRIMMED_SORTED.BAM TRIMMED_PREFIX.BAM && rm TRIMMED_PREFIX.BAM
@@ -71,6 +80,9 @@ TODO
 ```
 
 # Step 4: Generate Pile-Up from Trimmed Sorted BAM
+* **Input:** Sorted Trimmed BAM
+* **Output:** Pile-up
+
 ## Individual Command
 ```bash
 samtools mpileup -A -aa -d 0 -Q 0 --reference REFERENCE.FAS TRIMMED_SORTED.BAM > PILEUP.TXT
