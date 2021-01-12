@@ -93,6 +93,9 @@ TODO
 ```bash
 samtools mpileup -A -aa -d 0 -Q 0 --reference REFERENCE.FAS TRIMMED_SORTED.BAM > PILEUP.TXT
 ```
+* I think everything that depends on the pile-up will stream it from standard input
+    * Thus, to save space, `gzip` compression makes sense (e.g. `pigz -9 -p THREADS`)
+* Because there's such huge variance in how long the pile-up generation takes across files, it makes sense to use a 64 core machine and do all the pile-ups in parallel, and once most of them are done, compress some of the finished ones using multithreaded `pigz` on the idling cores
 
 ## Batch Command
 ```bash
