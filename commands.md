@@ -38,9 +38,9 @@ bedtools bamtobed -i PRIMERS.BAM > PRIMERS.BED
 minimap2 -t THREADS -a -x map-ont ../ref/NC_045512.2.fas.mmi READ1.FASTQ.GZ READ2.FASTQ.GZ | samtools sort --threads THREADS -o SORTED.BAM
 ```
 
-## Batch Command
+## Batch Command (64 threads)
 ```bash
-for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( minimap2 -t THREADS -a -x map-ont ../ref/NC_045512.2.fas.mmi $s*.fastq.gz | samtools sort --threads THREADS -o $s.sorted.bam ) ; } 2> $s.log.1.map.log ; done
+for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( minimap2 -t 64 -a -x map-ont ../ref/NC_045512.2.fas.mmi $s*.fastq.gz | samtools sort --threads 64 -o $s.sorted.bam ) ; } 2> $s.log.1.map.log ; done
 ```
 
 # Step 2: Trim Sorted BAM (resulting in unsorted trimmed BAM)
@@ -65,9 +65,9 @@ ivar trim -e -i SORTED.BAM -b PRIMERS.bed -p TRIMMED_PREFIX
 * Also, why does `ivar trim` need a sorted BAM?
     * Sorting doesn't take much extra time (I just pipe `minimap2`'s output to `samtools sort`), so not a big deal, but unclear why that pipe is a step
 
-## Batch Command
+## Batch Command (64 threads)
 ```bash
-parallel --jobs THREADS "{" time "(" ivar trim -e -i {}.sorted.bam -b ../primers/swift/sarscov2_v2_primers.bed -p {}.trimmed ")" ";" "}" ">" {}.log.2.trim.log "2>&1" ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
+parallel --jobs 64 "{" time "(" ivar trim -e -i {}.sorted.bam -b ../primers/swift/sarscov2_v2_primers.bed -p {}.trimmed ")" ";" "}" ">" {}.log.2.trim.log "2>&1" ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
 ```
 
 # Step 3: Sort Trimmed BAM
@@ -80,9 +80,9 @@ samtools sort --threads THREADS -o TRIMMED_SORTED.BAM TRIMMED_PREFIX.BAM && rm T
 ```
 * I'm deleting the unsorted trimmed BAM to save space (the sorted trimmed BAM has all the same info + it's sorted)
 
-## Batch Command
+## Batch Command (64 threads)
 ```bash
-for s in $(ls X.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( samtools sort --threads THREADS -o $s.trimmed.sorted.bam $s.trimmed.bam && rm $s.trimmed.bam ) ; } 2> $s.log.3.sorttrimmed.log ; done
+for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( samtools sort --threads 64 -o $s.trimmed.sorted.bam $s.trimmed.bam && rm $s.trimmed.bam ) ; } 2> $s.log.3.sorttrimmed.log ; done
 ```
 
 # Step 4: Generate Pile-Up from Trimmed Sorted BAM
@@ -97,9 +97,9 @@ samtools mpileup -A -aa -d 0 -Q 0 --reference REFERENCE.FAS TRIMMED_SORTED.BAM >
     * Thus, to save space, gzip compression makes sense (e.g. `pigz -9 -p THREADS`)
 * Because there's such huge variance in how long the pile-up generation takes across files, it makes sense to use a 64 core machine and do all the pile-ups in parallel, and once most of them are done, compress some of the finished ones using multithreaded `pigz` on the idling cores
 
-## Batch Command
+## Batch Command (64 threads)
 ```bash
-parallel --jobs THREADS "{" time "(" samtools mpileup -A -aa -d 0 -Q 0 --reference ../ref/NC045512.fas {}.trimmed.sorted.bam ")" ";" "}" ">" {}.trimmed.sorted.pileup.txt "2>" {}.log.4.pileup.log ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
+parallel --jobs 64 "{" time "(" samtools mpileup -A -aa -d 0 -Q 0 --reference ../ref/NC_045512.2.fas {}.trimmed.sorted.bam ")" ";" "}" ">" {}.trimmed.sorted.pileup.txt "2>" {}.log.4.pileup.log ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
 ```
 
 # Step 5: Call Variants from Pile-Up
