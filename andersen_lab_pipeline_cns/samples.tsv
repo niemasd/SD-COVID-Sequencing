@@ -1,0 +1,9 @@
+forward	reverse	sample	sample_library	sequencing_tech
+/home/gk/southpark/2021.01.10.fastq/001idSEARCH-5575-SAN_S1_L001_R1_001.fastq.gz	/home/gk/southpark/2021.01.10.fastq/001idSEARCH-5575-SAN_S1_L001_R2_001.fastq.gz	001idSEARCH-5575-SAN	001idSEARCH-5575-SAN_L001	illumina
+/home/gk/southpark/2021.01.10.fastq/001idSEARCH-5575-SAN_S1_L002_R1_001.fastq.gz	/home/gk/southpark/2021.01.10.fastq/001idSEARCH-5575-SAN_S1_L002_R2_001.fastq.gz	001idSEARCH-5575-SAN	001idSEARCH-5575-SAN_L002	illumina
+/home/gk/southpark/2021.01.10.fastq/001idSEARCH-5575-SAN_S1_L003_R1_001.fastq.gz	/home/gk/southpark/2021.01.10.fastq/001idSEARCH-5575-SAN_S1_L003_R2_001.fastq.gz	001idSEARCH-5575-SAN	001idSEARCH-5575-SAN_L003	illumina
+/home/gk/southpark/2021.01.10.fastq/001idSEARCH-5575-SAN_S1_L004_R1_001.fastq.gz	/home/gk/southpark/2021.01.10.fastq/001idSEARCH-5575-SAN_S1_L004_R2_001.fastq.gz	001idSEARCH-5575-SAN	001idSEARCH-5575-SAN_L004	illumina
+/home/gk/southpark/2021.01.10.fastq/002idSEARCH-5576-SAN_S2_L001_R1_001.fastq.gz	/home/gk/southpark/2021.01.10.fastq/002idSEARCH-5576-SAN_S2_L001_R2_001.fastq.gz	002idSEARCH-5576-SAN	002idSEARCH-5576-SAN_L001	illumina
+/home/gk/southpark/2021.01.10.fastq/002idSEARCH-5576-SAN_S2_L002_R1_001.fastq.gz	/home/gk/southpark/2021.01.10.fastq/002idSEARCH-5576-SAN_S2_L002_R2_001.fastq.gz	002idSEARCH-5576-SAN	002idSEARCH-5576-SAN_L002	illumina
+/home/gk/southpark/2021.01.10.fastq/002idSEARCH-5576-SAN_S2_L003_R1_001.fastq.gz	/home/gk/southpark/2021.01.10.fastq/002idSEARCH-5576-SAN_S2_L003_R2_001.fastq.gz	002idSEARCH-5576-SAN	002idSEARCH-5576-SAN_L003	illumina
+/home/gk/southpark/2021.01.10.fastq/002idSEARCH-5576-SAN_S2_L004_R1_001.fastq.gz	/home/gk/southpark/2021.01.10.fastq/002idSEARCH-5576-SAN_S2_L004_R2_001.fastq.gz	002idSEARCH-5576-SAN	002idSEARCH-5576-SAN_L004	illumina

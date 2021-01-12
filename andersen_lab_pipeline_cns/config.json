@@ -1,0 +1,14 @@
+{
+  "out_dir": "/home/gk/analysis/2020.12.24.hCoV19",
+  "bed_file": "/home/gk/code/hCoV19/db/primers/primers_v3.bed",
+  "gff3_file": "/home/gk/code/hCoV19/db/gff/NC_045512.2.gff3",
+  "ref_fasta": "/home/gk/code/hCoV19/db/NC045512.fasta",
+  "library_delimiter": "_",
+  "samples_path": "samples.tsv",
+  "illumina": {
+    "reference": "/home/gk/code/hCoV19/db/NC045512_bwa"
+  },
+  "ont": {
+    "reference": "/home/gk/code/hCoV19/db/NC045512"
+  }
+}
