@@ -39,19 +39,17 @@ minimap2 -t THREADS -a -x map-ont ../ref/NC045512.fas.mmi READ1.FASTQ.GZ READ2.F
 for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( minimap2 -t THREADS -a -x map-ont ../ref/NC045512.fas.mmi $s*.fastq.gz | samtools sort --threads THREADS -o $s.sorted.bam ) ; } 2> $s.log.1.map.log ; done
 ```
 
-# Step 2: Trim Sorted BAM
+# Step 2: Trim Sorted BAM (resulting in unsorted trimmed BAM)
 ## Individual Command
 ```bash
-ivar trim -i SORTED.BAM -b PRIMERS.bed -p TRIMMED_PREFIX -q 5 && \
-samtools sort --threads THREADS -o TRIMMED_SORTED.BAM TRIMMED_PREFIX.BAM && \
-rm TRIMMED_PREFIX.BAM
+ivar trim -i SORTED.BAM -b PRIMERS.bed -p TRIMMED_PREFIX -q 5
 ```
 * `TRIMMED_PREFIX` is the output file minus the `.bam` extension (e.g. `-p sample_name.trimmed` would result in `sample_name.trimmed.bam`)
 * `-q` is the minimum quality score (default is 20, but the `Snakefile` I was given has 5)
 * The `Snakefile` and cookbook both say to sort the `BAM` after, but if it was sorted before, shouldn't it be sorted after trimming...?
     * Maybe the length trimmed can vary, so if read *x* started earlier than read *y* but more was cut off the beginning, it should actually come after read *y*?
     * If so, maybe I'll output to a temporary file (e.g. `-p sample_name.trimmed.bam`) and then have the final output be a different file (e.g. `sample_name.trimmed.sorted.bam`)
-        * If I do this, I should probably just delete the unsorted trimmed BAM to save space (the sorted BAM has all the same info + it's sorted)
+        * If I do this, I should probably just delete the unsorted trimmed BAM to save space (the sorted trimmed BAM has all the same info + it's sorted)
 * Also, why does `ivar trim` need a sorted BAM?
     * Sorting doesn't take much extra time (I just pipe `minimap2`'s output to `samtools sort`), so not a big deal, but unclear why that pipe is a step
 
@@ -60,7 +58,19 @@ rm TRIMMED_PREFIX.BAM
 TODO
 ```
 
-# Step 3: Generate Pile-Up from Trimmed Sorted BAM
+# Step 3: Sort Trimmed BAM
+## Individual Command
+```bash
+samtools sort --threads THREADS -o TRIMMED_SORTED.BAM TRIMMED_PREFIX.BAM && rm TRIMMED_PREFIX.BAM
+```
+* I'm deleting the unsorted trimmed BAM to save space (the sorted trimmed BAM has all the same info + it's sorted)
+
+## Batch Command
+```bash
+TODO
+```
+
+# Step 4: Generate Pile-Up from Trimmed Sorted BAM
 ## Individual Command
 ```bash
 samtools mpileup -A -aa -d 0 -Q 0 --reference REFERENCE.FAS TRIMMED_SORTED.BAM > PILEUP.TXT
