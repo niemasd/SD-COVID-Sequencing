@@ -154,6 +154,7 @@ parallel --jobs 64 "{" time "(" zcat {}.trimmed.sorted.pileup.txt.gz "|" ivar co
 samtools depth -d 0 -Q 0 -q 0 -aa TRIMMED_SORTED.BAM > DEPTH.TXT
 ```
 * Potentially gzip the output TXT files to save space?
+    * They're tiny (less than 1 MB each), so not worth it
 
 ## Batch Command (64 threads)
 ```bash
