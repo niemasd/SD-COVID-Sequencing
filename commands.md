@@ -101,6 +101,7 @@ samtools mpileup -A -aa -d 0 -Q 0 --reference REFERENCE.FAS TRIMMED_SORTED.BAM >
 ```bash
 parallel --jobs 64 "{" time "(" samtools mpileup -A -aa -d 0 -Q 0 --reference ../ref/NC_045512.2.fas {}.trimmed.sorted.bam ")" ";" "}" ">" {}.trimmed.sorted.pileup.txt "2>" {}.log.4.pileup.log ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
 ```
+* There was quite a bit of variance between the runtimes, so rather than have the finished cores idle, I ran `pigz -9 -p THREADS` to compress all of the pile-up files that had already completed running as the last ones were finishing up
 
 # Step 5: Call Variants from Pile-Up
 * **Input:** Pile-up (`X.pileup.txt` or `X.pileup.txt.gz`)
