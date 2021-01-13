@@ -163,17 +163,17 @@ parallel --jobs 64 "{" time "(" samtools depth -d 0 -Q 0 -q 0 -aa {}.trimmed.sor
 ```
 
 # Step 8: Qualimap Report (supplemental summary stats)
-* **Input:** Sorted Trimmed BAM (`X.trimmed.sorted.bam`)
-* **Output:** Qualimap Report (`X.trimmed.sorted.stats.tar.gz`)
+* **Input:** Sorted BAM (`X.sorted.bam`) and Sorted Trimmed BAM (`X.trimmed.sorted.bam`)
+* **Output:** Qualimap Reports (`X.sorted.stats.tar.gz` and `X.trimmed.sorted.stats.tar.gz`)
 
 ## Individual Command
 ```bash
-qualimap bamqc -bam TRIMMED_SORTED.BAM -nt THREADS --java-mem-size=RAM -outdir STATS_DIR && tar c STATS_DIR | pigz -9 -p THREADS > STATS_DIR.tar.gz && rm -rf STATS_DIR
+qualimap bamqc -bam MAPPING.BAM -nt THREADS --java-mem-size=RAM -outdir STATS_DIR && tar c STATS_DIR | pigz -9 -p THREADS > STATS_DIR.tar.gz && rm -rf STATS_DIR
 ```
 
 ## Batch Command (64 threads)
 ```
-for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( qualimap bamqc -bam $s.trimmed.sorted.bam -nt 64 --java-mem-size=4G -outdir $s.trimmed.sorted.stats && tar c $s.trimmed.sorted.stats | pigz -9 -p 64 > $s.trimmed.sorted.stats.tar.gz && rm -rf $s.trimmed.sorted.stats ) ; } > $s.log.8.qualimap.log 2>&1 ; done
+for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do for f in sorted trimmed.sorted ; do { time ( qualimap bamqc -bam $s.$f.bam -nt 64 --java-mem-size=4G -outdir $s.$f.stats && tar c $s.$f.stats | pigz -9 -p 64 > $s.$f.stats.tar.gz && rm -rf $s.$f.stats ) ; } > $s.log.8.qualimap.$f.log 2>&1 ; done ; done
 ```
 
 ## Consolidating Stats
