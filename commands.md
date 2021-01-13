@@ -164,7 +164,7 @@ parallel --jobs 64 "{" time "(" samtools depth -d 0 -Q 0 -q 0 -aa {}.trimmed.sor
 
 # Step 8: Qualimap Report (supplemental summary stats)
 * **Input:** Sorted Trimmed BAM (`X.trimmed.sorted.bam`)
-* **Output:** Qualimap Report (`X.trimmed.sorted.stats.zip`)
+* **Output:** Qualimap Report (`X.trimmed.sorted.stats.tar.gz`)
 
 ## Individual Command
 ```bash
@@ -174,4 +174,11 @@ qualimap bamqc -bam TRIMMED_SORTED.BAM -nt THREADS --java-mem-size=RAM -outdir S
 ## Batch Command (64 threads)
 ```
 for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( qualimap bamqc -bam $s.trimmed.sorted.bam -nt 64 --java-mem-size=4G -outdir $s.trimmed.sorted.stats && tar c $s.trimmed.sorted.stats | pigz -9 -p 64 > $s.trimmed.sorted.stats.tar.gz && rm -rf $s.trimmed.sorted.stats ) ; } > $s.log.8.qualimap.log 2>&1 ; done
+```
+
+## Consolidating Stats
+I also wrote a [script](https://github.com/niemasd/tools/blob/master/qualimap_targz_to_TSV.py) to convert all the `X.trimmed.sorted.stats.tar.gz` files into a single TSV with all of the summary statistics:
+
+```bash
+qualimap_targz_to_TSV.py *.trimmed.sorted.stats.tar.gz > YYYY-MM-DD.trimmed.sorted.stats.tsv
 ```
