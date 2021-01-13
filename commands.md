@@ -173,7 +173,7 @@ qualimap bamqc -bam MAPPING.BAM -nt THREADS --java-mem-size=RAM -outdir STATS_DI
 
 ## Batch Command (64 threads)
 ```
-for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do for f in sorted trimmed.sorted ; do { time ( qualimap bamqc -bam $s.$f.bam -nt 64 --java-mem-size=4G -outdir $s.$f.stats && tar c $s.$f.stats | pigz -9 -p 64 > $s.$f.stats.tar.gz && rm -rf $s.$f.stats ) ; } > $s.log.8.qualimap.$f.log 2>&1 ; done ; done
+parallel --jobs 64 "{" time "(" qualimap bamqc -bam {1}.{2}.bam -nt 1 --java-mem-size=4G -outdir {1}.{2}.stats "&&" tar c {1}.{2}.stats "|" pigz -9 -p 1 ">" {1}.{2}.stats.tar.gz "&&" rm -rf {1}.{2}.stats ")" ";" "}" ">" {1}.log.8.qualimap.{2}.log "2>&1" ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq) ::: sorted trimmed.sorted
 ```
 
 ## Consolidating Stats
