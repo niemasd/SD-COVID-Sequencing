@@ -49,13 +49,14 @@ To speed up the entire workflow, we could theoretically just stop mapping reads 
 For a single file, I could do the following:
 
 ```bash
-minimap2 -t THREADS -a -x map-ont ../ref/NC_045512.2.fas.mmi READ1.FASTQ.GZ READ2.FASTQ.GZ | samtools view -F 4 | head -NUM_READS | samtools sort --threads THREADS -o SORTED.BAM
+minimap2 -t THREADS -a -x map-ont ../ref/NC_045512.2.fas.mmi READ1.FASTQ.GZ READ2.FASTQ.GZ | samtools view -h -F 4 | head -NUM_READS_PLUS_3 | samtools sort --threads THREADS -o SORTED.BAM
 ```
+* You need to add 3 to the desired number of reads because the `-h` flag of `samtools view` outputs the header (which is 3 lines long)
 
 For a batch command, I could do the following (I've hardcoded 64 threads and 250000 mapped reads):
 
 ```bash
-for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( minimap2 -t 64 -a -x map-ont ../ref/NC_045512.2.fas.mmi $s*.fastq.gz | samtools view -F 4 | head -250000 | samtools sort --threads 64 -o $s.sorted.bam ) ; } 2> $s.log.1.map.log ; done
+for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( minimap2 -t 64 -a -x map-ont ../ref/NC_045512.2.fas.mmi $s*.fastq.gz | samtools view -F 4 | head -250003 | samtools sort --threads 64 -o $s.sorted.bam ) ; } 2> $s.log.1.map.log ; done
 ```
 
 # Step 2: Trim Sorted BAM (resulting in unsorted trimmed BAM)
