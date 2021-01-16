@@ -43,6 +43,21 @@ minimap2 -t THREADS -a -x map-ont ../ref/NC_045512.2.fas.mmi READ1.FASTQ.GZ READ
 for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( minimap2 -t 64 -a -x map-ont ../ref/NC_045512.2.fas.mmi $s*.fastq.gz | samtools sort --threads 64 -o $s.sorted.bam ) ; } 2> $s.log.1.map.log ; done
 ```
 
+## Speed Up by Truncating at Number of Mapped Reads
+To speed up the entire workflow, we could theoretically just stop mapping reads once we hit a desired number of mapped reads (e.g. 250,000). If the output of Minimap2 is piped to `samtools view -F 4` to filter only for mapped reads, and then the SAM output of that is piped to `head -NUM_READS` to truncate at a certain number of reads, `head` should close the pipe (thus killing Minimap2 early), and downstream analyses will have much smaller number of reads to deal with.
+
+For a single file, I could do the following:
+
+```bash
+minimap2 -t THREADS -a -x map-ont ../ref/NC_045512.2.fas.mmi READ1.FASTQ.GZ READ2.FASTQ.GZ | samtools view -F 4 | head -NUM_READS | samtools sort --threads THREADS -o SORTED.BAM
+```
+
+For a batch command, I could do the following:
+
+```bash
+for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( minimap2 -t 64 -a -x map-ont ../ref/NC_045512.2.fas.mmi $s*.fastq.gz | samtools view -F 4 | head -NUM_READS | samtools sort --threads 64 -o $s.sorted.bam ) ; } 2> $s.log.1.map.log ; done
+```
+
 # Step 2: Trim Sorted BAM (resulting in unsorted trimmed BAM)
 * **Input:** Sorted Untrimmed BAM (`X.sorted.bam`)
 * **Output:** Unsorted Trimmed BAM (`X.trimmed.bam`)
