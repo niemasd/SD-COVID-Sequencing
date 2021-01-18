@@ -98,7 +98,7 @@ samtools sort --threads THREADS -o TRIMMED_SORTED.BAM TRIMMED_PREFIX.BAM && rm T
 
 ## Batch Command (64 threads)
 ```bash
-for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( samtools sort --threads 64 -o $s.trimmed.sorted.bam $s.trimmed.bam && rm $s.trimmed.bam ) ; } 2> $s.log.3.sorttrimmed.log ; done
+for s in $(ls *.trimmed.bam | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( samtools sort --threads 64 -o $s.trimmed.sorted.bam $s.trimmed.bam && rm $s.trimmed.bam ) ; } 2> $s.log.3.sorttrimmed.log ; done
 ```
 
 # Step 4: Generate Pile-Up from Trimmed Sorted BAM
@@ -115,7 +115,7 @@ samtools mpileup -A -aa -d 0 -Q 0 --reference REFERENCE.FAS TRIMMED_SORTED.BAM >
 
 ## Batch Command (64 threads)
 ```bash
-parallel --jobs 64 "{" time "(" samtools mpileup -A -aa -d 0 -Q 0 --reference ../ref/NC_045512.2.fas {}.trimmed.sorted.bam ")" ";" "}" ">" {}.trimmed.sorted.pileup.txt "2>" {}.log.4.pileup.log ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
+parallel --jobs 64 "{" time "(" samtools mpileup -A -aa -d 0 -Q 0 --reference ../ref/NC_045512.2.fas {}.trimmed.sorted.bam ")" ";" "}" ">" {}.trimmed.sorted.pileup.txt "2>" {}.log.4.pileup.log ::: $(ls *.trimmed.sorted.bam | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
 ```
 * There was quite a bit of variance between the runtimes, so rather than have the finished cores idle, I ran `pigz -9 -p THREADS` to compress all of the pile-up files that had already completed running as the last ones were finishing up
 
@@ -135,7 +135,7 @@ cat PILEUP.TXT | ivar variants -r REFERENCE.FAS -g REFERENCE.GFF -p VARIANTS.TSV
 
 ## Batch Command (64 threads)
 ```bash
-parallel --jobs 64 "{" time "(" zcat {}.trimmed.sorted.pileup.txt.gz "|" ivar variants -r ../ref/NC_045512.2.fas -g ../ref/NC_045512.2.gff3 -p {}.trimmed.sorted.pileup.variants.tsv -m 10 ")" ";" "}" "2>" {}.log.5.variants.log ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
+parallel --jobs 64 "{" time "(" zcat {}.trimmed.sorted.pileup.txt.gz "|" ivar variants -r ../ref/NC_045512.2.fas -g ../ref/NC_045512.2.gff3 -p {}.trimmed.sorted.pileup.variants.tsv -m 10 ")" ";" "}" "2>" {}.log.5.variants.log ::: $(ls *.trimmed.sorted.pileup.txt.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
 ```
 
 # Step 6: Call Consensus Sequence from Pile-Up
@@ -159,7 +159,7 @@ cat PILEUP.TXT | ivar consensus -p CONSENSUS.FAS -m 10 -n N -t 0.5
 
 ## Batch Command (64 threads)
 ```bash
-parallel --jobs 64 "{" time "(" zcat {}.trimmed.sorted.pileup.txt.gz "|" ivar consensus -p {}.trimmed.sorted.pileup.consensus -m 10 -n N -t 0.5 ")" ";" "}" ">" {}.log.6.consensus.log "2>&1" ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
+parallel --jobs 64 "{" time "(" zcat {}.trimmed.sorted.pileup.txt.gz "|" ivar consensus -p {}.trimmed.sorted.pileup.consensus -m 10 -n N -t 0.5 ")" ";" "}" ">" {}.log.6.consensus.log "2>&1" ::: $(ls *.trimmed.sorted.pileup.txt.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
 ```
 
 # Step 7: Call Depth (supplemental summary stats)
@@ -175,7 +175,7 @@ samtools depth -d 0 -Q 0 -q 0 -aa TRIMMED_SORTED.BAM > DEPTH.TXT
 
 ## Batch Command (64 threads)
 ```bash
-parallel --jobs 64 "{" time "(" samtools depth -d 0 -Q 0 -q 0 -aa {}.trimmed.sorted.bam ")" ";" "}" ">" {}.trimmed.sorted.depth.txt "2>" {}.log.7.depth.log ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
+parallel --jobs 64 "{" time "(" samtools depth -d 0 -Q 0 -q 0 -aa {}.trimmed.sorted.bam ")" ";" "}" ">" {}.trimmed.sorted.depth.txt "2>" {}.log.7.depth.log ::: $(ls *.trimmed.sorted.bam | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
 ```
 
 # Step 8: Qualimap Report (supplemental summary stats)
