@@ -38,9 +38,14 @@ bedtools bamtobed -i PRIMERS.BAM > PRIMERS.BED
 minimap2 -t THREADS -a -x map-ont ../ref/NC_045512.2.fas.mmi READ1.FASTQ.GZ READ2.FASTQ.GZ | samtools sort --threads THREADS -o SORTED.BAM
 ```
 
-## Batch Command (64 threads)
+## Batch Command (64 threads per Minimap2, 1 at a time)
 ```bash
 for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( minimap2 -t 64 -a -x map-ont ../ref/NC_045512.2.fas.mmi $s*.fastq.gz | samtools sort --threads 64 -o $s.sorted.bam ) ; } 2> $s.log.1.map.log ; done
+```
+
+## Batch Command (1 thread per Minimap2, 64 at a time)
+```bash
+parallel --jobs 64 "{" time "(" minimap2 -t 1 -a -x map-ont ../ref/NC_045512.2.fas.mmi {}*.fastq.gz "|" samtools sort --threads 1 -o {}.sorted.bam  ")" ";" "}" "2>" {}.log.1.map.log ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
 ```
 
 ## Speed Up by Truncating at Number of Mapped Reads
