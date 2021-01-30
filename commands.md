@@ -101,9 +101,14 @@ samtools sort --threads THREADS -o TRIMMED_SORTED.BAM TRIMMED_PREFIX.BAM && rm T
 ```
 * I'm deleting the unsorted trimmed BAM to save space (the sorted trimmed BAM has all the same info + it's sorted)
 
-## Batch Command (64 threads)
+## Batch Command (64 threads per samtools, 1 at a time)
 ```bash
 for s in $(ls *.trimmed.bam | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( samtools sort --threads 64 -o $s.trimmed.sorted.bam $s.trimmed.bam && rm $s.trimmed.bam ) ; } 2> $s.log.3.sorttrimmed.log ; done
+```
+
+## Batch Command (1 thread per samtools, 64 at a time)
+```bash
+parallel --jobs 64 "{" time "(" samtools sort --threads 1 -o {}.trimmed.sorted.bam {}.trimmed.bam "&&" rm {}.trimmed.bam  ")" ";" "}" "2>" {}.log.3.sorttrimmed.log ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
 ```
 
 # Step 4: Generate Pile-Up from Trimmed Sorted BAM
