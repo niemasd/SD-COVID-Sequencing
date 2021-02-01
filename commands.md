@@ -208,3 +208,16 @@ I also wrote a [script](https://github.com/niemasd/tools/blob/master/qualimap_ta
 ```bash
 qualimap_targz_to_TSV.py *.trimmed.sorted.stats.tar.gz > YYYY-MM-DD.trimmed.sorted.stats.tsv
 ```
+
+# Archiving Each Sample's Files
+It seems as though Google Shared Drives have a [400,000 file limit](https://support.google.com/a/answer/7338880?hl=en), and in general, there are tons of tiny files (which result in slow file transfer), so it makes sense to archive the files from each sample into a single file (e.g. zip).
+
+## Individual Command
+```bash
+zip -9 SAMPLE.zip SAMPLE*
+```
+
+## Batch Command
+```bash
+for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq) ; do zip -9 $s.zip $s* ; done
+```
