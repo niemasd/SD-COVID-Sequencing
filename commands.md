@@ -91,6 +91,19 @@ ivar trim -e -i SORTED.BAM -b PRIMERS.bed -p TRIMMED_PREFIX
 parallel --jobs 64 "{" time "(" ivar trim -e -i {}.sorted.bam -b ../primers/swift/sarscov2_v2_primers.bed -p {}.trimmed ")" ";" "}" ">" {}.log.2.trim.log "2>&1" ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
 ```
 
+## Using Swift's [`primerclip`](https://github.com/swiftbiosciences/primerclip)
+At the time of writing this comment (2021-02-04), iVar Trim has a bug that is being fixed. As a quick-and-dirty alternative, Kristian Andersen recommended using Swift's [`primerclip`](https://github.com/swiftbiosciences/primerclip) tool for sequences generated using Swift primers. The usage from the README is as follows:
+
+```bash
+primerclip masterfile.txt alignmentfile.sam outputfilename.sam
+```
+
+It doesn't seem to natively support BAM files, but I should be able to use a FIFO to do so using `<()` for input and `>()` for output:
+
+```bash
+primerclip PRIMERS.txt <(samtools view -h SORTED.bam) >(samtools view -S -b > TRIMMED.bam)
+```
+
 # Step 3: Sort Trimmed BAM
 * **Input:** Unsorted Trimmed BAM (`X.trimmed.bam`)
 * **Output:** Sorted Trimmed BAM (`X.trimmed.sorted.bam`)
