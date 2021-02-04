@@ -98,11 +98,13 @@ At the time of writing this comment (2021-02-04), iVar Trim has a bug that is be
 primerclip masterfile.txt alignmentfile.sam outputfilename.sam
 ```
 
-It doesn't seem to natively support BAM files, but I should be able to use a FIFO to do so using `<()` for input and `>()` for output:
+Note that the SAMs need to be **name-sorted**, NOT coordinate-sorted. Also, it doesn't seem to natively support BAM files, but I should be able to use a FIFO to do so using `<()` for input and `>()` for output:
 
 ```bash
-primerclip PRIMERS.txt <(samtools view -h SORTED.bam) >(samtools view -S -b > TRIMMED.bam)
+primerclip PRIMERS.txt <(samtools sort -n SORTED.bam | samtools view -h) >(samtools view -S -b > TRIMMED.bam)
 ```
+
+The above SHOULD have worked, but `primerclip` is a bit janky and complains that there's no header... Might give up and wait for iVar Trim to get fixed.
 
 # Step 3: Sort Trimmed BAM
 * **Input:** Unsorted Trimmed BAM (`X.trimmed.bam`)
