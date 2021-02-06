@@ -140,7 +140,8 @@ samtools mpileup -A -aa -d 0 -Q 0 --reference REFERENCE.FAS TRIMMED_SORTED.BAM >
 ```
 * I think everything that depends on the pile-up will stream it from standard input
     * Thus, to save space, gzip compression makes sense (e.g. `pigz -9 -p THREADS`)
-* Because there's such huge variance in how long the pile-up generation takes across files, it makes sense to use a 64 core machine and do all the pile-ups in parallel, and once most of them are done, compress some of the finished ones using multithreaded `pigz` on the idling cores
+        * Because there's such huge variance in how long the pile-up generation takes across files, it makes sense to use a 64 core machine and do all the pile-ups in parallel, and once most of them are done, compress some of the finished ones using multithreaded `pigz` on the idling cores
+    * However, given that I'll now be zipping everything at the end anyways, doesn't make sense to waste compute time compressing here as well
 
 ## Batch Command (64 threads)
 ```bash
@@ -164,7 +165,7 @@ cat PILEUP.TXT | ivar variants -r REFERENCE.FAS -g REFERENCE.GFF -p VARIANTS.TSV
 
 ## Batch Command (64 threads)
 ```bash
-parallel --jobs 64 "{" time "(" zcat {}.trimmed.sorted.pileup.txt.gz "|" ivar variants -r ../ref/NC_045512.2.fas -g ../ref/NC_045512.2.gff3 -p {}.trimmed.sorted.pileup.variants.tsv -m 10 ")" ";" "}" "2>" {}.log.5.variants.log ::: $(ls *.trimmed.sorted.pileup.txt.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
+parallel --jobs 64 "{" time "(" cat {}.trimmed.sorted.pileup.txt.gz "|" ivar variants -r ../ref/NC_045512.2.fas -g ../ref/NC_045512.2.gff3 -p {}.trimmed.sorted.pileup.variants.tsv -m 10 ")" ";" "}" "2>" {}.log.5.variants.log ::: $(ls *.trimmed.sorted.pileup.txt.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
 ```
 
 # Step 6: Call Consensus Sequence from Pile-Up
@@ -175,6 +176,7 @@ parallel --jobs 64 "{" time "(" zcat {}.trimmed.sorted.pileup.txt.gz "|" ivar va
 ```bash
 cat PILEUP.TXT | ivar consensus -p CONSENSUS.FAS -m 10 -n N -t 0.5
 ```
+* If pile-up files are gzipped, use `zcat PILEUP.TXT.GZ` instead of `cat PILEUP.TXT`
 * `-m` is the minimum depth to call consensus
     * Default is 10, so not sure why they explicitly specify `-m 10` in the `Snakefile`
 * `-n` is the ambiguous character (`N` or `-`) to print in sites that have lower than `-m` coverage
@@ -188,7 +190,7 @@ cat PILEUP.TXT | ivar consensus -p CONSENSUS.FAS -m 10 -n N -t 0.5
 
 ## Batch Command (64 threads)
 ```bash
-parallel --jobs 64 "{" time "(" zcat {}.trimmed.sorted.pileup.txt.gz "|" ivar consensus -p {}.trimmed.sorted.pileup.consensus -m 10 -n N -t 0.5 ")" ";" "}" ">" {}.log.6.consensus.log "2>&1" ::: $(ls *.trimmed.sorted.pileup.txt.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
+parallel --jobs 64 "{" time "(" cat {}.trimmed.sorted.pileup.txt.gz "|" ivar consensus -p {}.trimmed.sorted.pileup.consensus -m 10 -n N -t 0.5 ")" ";" "}" ">" {}.log.6.consensus.log "2>&1" ::: $(ls *.trimmed.sorted.pileup.txt.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
 ```
 
 # Step 7: Call Depth (supplemental summary stats)
