@@ -221,22 +221,44 @@ qualimap bamqc -bam MAPPING.BAM -nt THREADS --java-mem-size=RAM -outdir STATS_DI
 parallel --jobs 64 "{" time "(" qualimap bamqc -bam {1}.{2}.bam -nt 1 --java-mem-size=4G -outdir {1}.{2}.stats "&&" tar c {1}.{2}.stats "|" pigz -9 -p 1 ">" {1}.{2}.stats.tar.gz "&&" rm -rf {1}.{2}.stats ")" ";" "}" ">" {1}.log.8.qualimap.{2}.log "2>&1" ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq) ::: sorted trimmed.sorted
 ```
 
-## Consolidating Stats
-I also wrote a [script](https://github.com/niemasd/tools/blob/master/qualimap_targz_to_TSV.py) to convert all the `X.trimmed.sorted.stats.tar.gz` files into a single TSV with all of the summary statistics:
+# When All Samples Finish
+There are some things I do when all samples finish running, to archive as well as to compute summary stats.
 
-```bash
-qualimap_targz_to_TSV.py *.trimmed.sorted.stats.tar.gz > YYYY-MM-DD.trimmed.sorted.stats.tsv
-```
+## Archiving Each Sample's Files
+It seems as though Google Shared Drives have a [400,000 file limit](https://support.google.com/a/answer/7338880?hl=en), and in general, there are tons of tiny files (which result in slow file transfer), so it makes sense to archive the files from each sample into a single file (e.g. zip). Now that I'm zipping things overall, I no longer need to gzip the pile-up files (because they'll get compressed when storing anyways).
 
-# Archiving Each Sample's Files
-It seems as though Google Shared Drives have a [400,000 file limit](https://support.google.com/a/answer/7338880?hl=en), and in general, there are tons of tiny files (which result in slow file transfer), so it makes sense to archive the files from each sample into a single file (e.g. zip).
-
-## Individual Command
+### Individual Command
 ```bash
 zip -9 SAMPLE.zip SAMPLE*
 ```
 
-## Batch Command
+### Batch Command
 ```bash
 for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq) ; do zip -9 $s.zip $s* ; done
+```
+
+## Consolidating Qualimap Stats
+I also wrote a [script](https://github.com/niemasd/tools/blob/master/qualimap_targz_to_TSV.py) to convert all the `X.trimmed.sorted.stats.tar.gz` files into a single TSV with all of the summary statistics.
+
+### Command
+```bash
+qualimap_targz_to_TSV.py *.stats.tar.gz > output/qualimap.tsv
+```
+
+## Consolidating Consensus Sequences, Variant Calls, and Depths
+People will likely mainly just be interested in consensus sequences, variant calls, and depths, so I zip them separately as well.
+
+### Command
+```bash
+zip -9 consensus.zip *.consensus.fa && mv consensus.zip output/
+zip -9 variants.zip *.variants.tsv && mv variants.zip output/
+zip -9 depth.zip *.depth.txt && mv depth.zip output/
+```
+
+## Mapping Depth Distributions
+It is useful to visualize the distributions of per-site mapping depth across the samples. I wrote a [script](https://github.com/niemasd/tools/blob/master/samtools_depth_violinplot.py) to generate a violin plot across all samples.
+
+### Command
+```bash
+samtools_depth_violinplot.py *.depth.txt
 ```
