@@ -25,9 +25,10 @@ bedtools bamtobed -i db/zika_primers.bam > db/zika_primers.bed
 I wonder if Minimap2 would be fine instead of BWA-MEM? So I propose the following:
 
 ```bash
-minimap2 -t THREADS -a -x map-ont REFERENCE_GENOME.FAS.MMI PRIMERS.FAS | samtools view -b -F 4 > PRIMERS.BAM
+minimap2 -t THREADS -a -x sr REFERENCE_GENOME.FAS.MMI PRIMERS.FAS | samtools view -b -F 4 > PRIMERS.BAM
 bedtools bamtobed -i PRIMERS.BAM > PRIMERS.BED
 ```
+* I used to call `minimap2` with `-x map-ont`, but Karthik said I should use `-x sr`
 
 # Step 1: Map Reads and Sort
 * **Input:** FASTQ (or FASTQ.GZ) file(s) (`X.fastq` or `X.fastq.gz`)
@@ -35,17 +36,18 @@ bedtools bamtobed -i PRIMERS.BAM > PRIMERS.BED
 
 ## Individual Command
 ```bash
-minimap2 -t THREADS -a -x map-ont ../ref/NC_045512.2.fas.mmi READ1.FASTQ.GZ READ2.FASTQ.GZ | samtools sort --threads THREADS -o SORTED.BAM
+minimap2 -t THREADS -a -x sr ../ref/NC_045512.2.fas.mmi READ1.FASTQ.GZ READ2.FASTQ.GZ | samtools sort --threads THREADS -o SORTED.BAM
 ```
+* * I used to call `minimap2` with `-x map-ont`, but Karthik said I should use `-x sr`
 
 ## Batch Command (64 threads per Minimap2, 1 at a time)
 ```bash
-for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( minimap2 -t 64 -a -x map-ont ../ref/NC_045512.2.fas.mmi $s*.fastq.gz | samtools sort --threads 64 -o $s.sorted.bam ) ; } 2> $s.log.1.map.log ; done
+for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( minimap2 -t 64 -a -x sr ../ref/NC_045512.2.fas.mmi $s*.fastq.gz | samtools sort --threads 64 -o $s.sorted.bam ) ; } 2> $s.log.1.map.log ; done
 ```
 
 ## Batch Command (1 thread per Minimap2, 64 at a time)
 ```bash
-parallel --jobs 64 "{" time "(" minimap2 -t 1 -a -x map-ont ../ref/NC_045512.2.fas.mmi {}*.fastq.gz "|" samtools sort --threads 1 -o {}.sorted.bam  ")" ";" "}" "2>" {}.log.1.map.log ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
+parallel --jobs 64 "{" time "(" minimap2 -t 1 -a -x sr ../ref/NC_045512.2.fas.mmi {}*.fastq.gz "|" samtools sort --threads 1 -o {}.sorted.bam  ")" ";" "}" "2>" {}.log.1.map.log ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
 ```
 
 ## Speed Up by Truncating at Number of Mapped Reads
@@ -54,14 +56,14 @@ To speed up the entire workflow, we could theoretically just stop mapping reads 
 For a single file, I could do the following:
 
 ```bash
-minimap2 -t THREADS -a -x map-ont ../ref/NC_045512.2.fas.mmi READ1.FASTQ.GZ READ2.FASTQ.GZ | samtools view -h -F 4 | head -NUM_READS_PLUS_3 | samtools sort --threads THREADS -o SORTED.BAM
+minimap2 -t THREADS -a -x sr ../ref/NC_045512.2.fas.mmi READ1.FASTQ.GZ READ2.FASTQ.GZ | samtools view -h -F 4 | head -NUM_READS_PLUS_3 | samtools sort --threads THREADS -o SORTED.BAM
 ```
 * You need to add 3 to the desired number of reads because the `-h` flag of `samtools view` outputs the header (which is 3 lines long)
 
 For a batch command, I could do the following (I've hardcoded 64 threads and 250000 mapped reads):
 
 ```bash
-for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( minimap2 -t 64 -a -x map-ont ../ref/NC_045512.2.fas.mmi $s*.fastq.gz | samtools view -h -F 4 | head -250003 | samtools sort --threads 64 -o $s.sorted.bam ) ; } 2> $s.log.1.map.log ; done
+for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); do { time ( minimap2 -t 64 -a -x sr ../ref/NC_045512.2.fas.mmi $s*.fastq.gz | samtools view -h -F 4 | head -250003 | samtools sort --threads 64 -o $s.sorted.bam ) ; } 2> $s.log.1.map.log ; done
 ```
 
 # Step 2: Trim Sorted BAM (resulting in unsorted trimmed BAM)
@@ -70,8 +72,9 @@ for s in $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq); d
 
 ## Individual Command
 ```bash
-ivar trim -e -i SORTED.BAM -b PRIMERS.bed -p TRIMMED_PREFIX
+ivar trim -x 5 -e -i SORTED.BAM -b PRIMERS.bed -p TRIMMED_PREFIX
 ```
+* `-x 5` is a new flag Karthik told me to add (requires iVar 1.3.1 or higher); something about extra bases added to the beginning/end of primers?
 * `TRIMMED_PREFIX` is the output file minus the `.bam` extension (e.g. `-p sample_name.trimmed` would result in `sample_name.trimmed.bam`)
 * `-e` is "Include reads with no primers"
     * In the `Snakefile`, `trim_reads_illumina` has it, but `trim_reads_ont` doesn't have it
@@ -88,7 +91,7 @@ ivar trim -e -i SORTED.BAM -b PRIMERS.bed -p TRIMMED_PREFIX
 
 ## Batch Command (64 threads)
 ```bash
-parallel --jobs 64 "{" time "(" ivar trim -e -i {}.sorted.bam -b ../primers/swift/sarscov2_v2_primers.bed -p {}.trimmed ")" ";" "}" ">" {}.log.2.trim.log "2>&1" ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
+parallel --jobs 64 "{" time "(" ivar trim -x 5 -e -i {}.sorted.bam -b ../primers/swift/sarscov2_v2_primers.bed -p {}.trimmed ")" ";" "}" ">" {}.log.2.trim.log "2>&1" ::: $(ls *.fastq.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
 ```
 
 ## Using Swift's [`primerclip`](https://github.com/swiftbiosciences/primerclip)
