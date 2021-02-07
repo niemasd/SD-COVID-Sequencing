@@ -263,6 +263,6 @@ It is useful to visualize the distributions of per-site mapping depth across the
 
 ### Command
 ```bash
-samtools_depth_violinplot.py *.depth.txt
-samtools_depth_lineplot.py *.depth.txt
+samtools_depth_violinplot.py *.depth.txt && mv depth_violin.pdf output/
+samtools_depth_lineplot.py *.depth.txt && mv depth_lineplot.pdf output/
 ```
