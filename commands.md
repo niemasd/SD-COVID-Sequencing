@@ -259,9 +259,10 @@ zip -9 depth.zip *.depth.txt && mv depth.zip output/
 ```
 
 ## Mapping Depth Distributions
-It is useful to visualize the distributions of per-site mapping depth across the samples. I wrote a [script](https://github.com/niemasd/tools/blob/master/samtools_depth_violinplot.py) to generate a violin plot across all samples.
+It is useful to visualize the distributions of per-site mapping depth across the samples. I wrote a [script](https://github.com/niemasd/tools/blob/master/samtools_depth_violinplot.py) to generate a violin plot across all samples as well as a [script](https://github.com/niemasd/tools/blob/master/samtools_depth_lineplot.py) to generate line plots across all samples.
 
 ### Command
 ```bash
 samtools_depth_violinplot.py *.depth.txt
+samtools_depth_lineplot.py *.depth.txt
 ```
