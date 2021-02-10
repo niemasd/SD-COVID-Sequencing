@@ -262,11 +262,13 @@ zip -9 depth.zip *.depth.txt && mv depth.zip output/
 It is useful to visualize the distributions of per-site mapping depth across the samples. I wrote some scripts to do the following:
 * [`samtools_depth_violinplot.py`](https://github.com/niemasd/tools/blob/master/samtools_depth_violinplot.py): Generate a violin plot of mapping depth across all samples
 * [`samtools_depth_lineplot.py`](https://github.com/niemasd/tools/blob/master/samtools_depth_lineplot.py): Generate line plots of mapping depth across all samples
-* [`samtools_depth_concat.py`](https://github.com/niemasd/tools/blob/master/samtools_depth_concat.py): Concatenate `samtools output`across all samples into a single TSV
+* [`samtools_depth_concat.py`](https://github.com/niemasd/tools/blob/master/samtools_depth_concat.py): Concatenate `samtools depth` output across all samples into a single TSV
+* [`samtools_depth_low.py`](https://github.com/niemasd/tools/blob/master/samtools_depth_low.py): List the positions between a user-specified window (1-based indexing) with a depth below a user-specified threshold
 
 ### Command
 ```bash
 samtools_depth_violinplot.py *.depth.txt && mv depth_violin.pdf output/
 samtools_depth_lineplot.py *.depth.txt && mv depth_lineplot.pdf output/
 samtools_depth_concat.py *.depth.txt > output/depth.tsv
+samtools_depth_low.py 266 29674 10 *.depth.txt > output/depth_below_10.tsv
 ```
