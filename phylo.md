@@ -45,3 +45,31 @@ iqtree2 -T THREADS -m GTR+F+G4 --polytomy -blmin 1e-9 -s ALIGNED.TRIMMED.ALN
 ```bash
 iqtree2 -T 32 -m GTR+F+G4 --polytomy -blmin 1e-9 -s consensus.trimmed.aln
 ```
+
+# Step 4: Pangolin Lineage Assignment
+* **Input:** FASTA file containing unaligned genomes (`X.fas`)
+* **Output:** Assigned Pangolin lineages (`X.pangolin.csv`)
+
+I believe we would want to run this on the original unaligned sequences, rather than on the MSA or trimmed MSA. Thus, this can happen in parallel to Steps 1-3.
+
+## How to Install
+Here's how I installed Pangolin in my environment (rather than using their conda environment):
+
+```bash
+git clone https://github.com/cov-lineages/pangolin.git && cd pangolin && python setup.py install && cd .. && rm -rf pangolin
+git clone https://github.com/cov-lineages/pangoLEARN.git && cd pangoLEARN && python setup.py install && cd .. && rm -rf pangoLEARN
+git clone https://github.com/cov-ert/datafunk.git && cd datafunk && python setup.py install && cd .. && rm -rf datafunk
+pip install snakemake
+```
+
+## Command
+```bash
+pangolin --update
+pangolin -t THREADS UNALIGNED.FAS
+```
+
+## Example
+```bash
+pangolin --update
+pangolin -t 32 consensus.fas
+```
