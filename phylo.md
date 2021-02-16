@@ -28,5 +28,5 @@ trim_msa.py -i ALIGNED.ALN -s TRIM_FROM_START -e TRIM_FROM_END -o ALIGNED.TRIMME
 
 ## Example
 ```bash
-trim_msa.py -i viralmsa_out/consensus.fas.aln -o consensus.trimmed.aln -s 100 -e 50
+trim_msa.py -i viralmsa_out/consensus.fas.aln -s 100 -e 50 -o consensus.trimmed.aln
 ```
