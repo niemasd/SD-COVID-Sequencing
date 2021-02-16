@@ -23,7 +23,7 @@ The reason for this is that the beginning and end of the SARS-CoV-2 assemblies m
 
 ## Command
 ```bash
-trim_msa.py -i ALIGNED.ALN -s START -e END -o ALIGNED.TRIMMED.ALN
+trim_msa.py -i ALIGNED.ALN -s TRIM_FROM_START -e TRIM_FROM_END -o ALIGNED.TRIMMED.ALN
 ```
 
 ## Example
