@@ -30,3 +30,18 @@ trim_msa.py -i ALIGNED.ALN -s TRIM_FROM_START -e TRIM_FROM_END -o ALIGNED.TRIMME
 ```bash
 trim_msa.py -i viralmsa_out/consensus.fas.aln -s 100 -e 50 -o consensus.trimmed.aln
 ```
+
+# Step 3: Infer Phylogeny
+* **Input:** FASTA file containing the MSA with ends removed (`X.trimmed.aln`)
+* **Output:** Newick file containing the unrooted phylogeny (`X.unrooted.nwk`)
+
+## Command
+```bash
+iqtree2 -T THREADS -m GTR+F+G4 --polytomy -blmin 1e-9 -s ALIGNED.TRIMMED.ALN
+```
+* Optionally add `--fast` to use the less accurate but much faster tree search algorithm
+
+## Example
+```bash
+iqtree2 -T 32 -m GTR+F+G4 --polytomy -blmin 1e-9 -s consensus.trimmed.aln
+```
