@@ -46,6 +46,9 @@ iqtree2 -T THREADS -m GTR+F+G4 --polytomy -blmin 1e-9 -s ALIGNED.TRIMMED.ALN
 iqtree2 -T 32 -m GTR+F+G4 --polytomy -blmin 1e-9 -s consensus.trimmed.aln
 ```
 
+## Rooting
+This gets us an unrooted tree, but we actually need to root the tree. I'll try to get this written up ASAP, but basically, we should be able to do outgroup rooting using [RmYN02](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7211627/) as the outgroup.
+
 # Step 4: Pangolin Lineage Assignment
 * **Input:** FASTA file containing unaligned genomes (`X.fas`)
 * **Output:** Assigned Pangolin lineages (`X.pangolin.csv`)
