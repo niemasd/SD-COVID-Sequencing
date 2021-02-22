@@ -31,7 +31,7 @@ trim_msa.py -i ALIGNED.ALN -s TRIM_FROM_START -e TRIM_FROM_END -o ALIGNED.TRIMME
 trim_msa.py -i viralmsa_out/consensus.fas.aln -s 100 -e 50 -o consensus.trimmed.aln
 ```
 
-# Step 3: Infer Phylogeny
+# Step 3.1: Infer Unrooted Phylogeny
 * **Input:** FASTA file containing the MSA with ends removed (`X.trimmed.aln`)
 * **Output:** Newick file containing the unrooted phylogeny (`X.unrooted.nwk`)
 
@@ -46,12 +46,19 @@ iqtree2 -T THREADS -m GTR+F+G4 --polytomy -blmin 1e-9 -s ALIGNED.TRIMMED.ALN
 iqtree2 -T 32 -m GTR+F+G4 --polytomy -blmin 1e-9 -s consensus.trimmed.aln
 ```
 
-# Rooting
-This gets us an unrooted tree, but we actually need to root the tree. I'll try to get this written up ASAP, but basically, we should be able to do outgroup rooting using [RmYN02](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7211627/) as the outgroup.
+# Step 3.2: Root the Tree
+* **Input:** Newick file containing the unrooted phylogeny (`X.unrooted.nwk`)
+* **Output:** Newick file containing the rooted phylogeny (`X.rooted.nwk`)
 
-1. Add the [outgroup RmYN02 sequence](reference_genome/RmYN02.fas) to the collection of sequences before Multiple Sequence Alignment
-2. Do the whole phylogenetic inference workflow (Steps 1-3)
-3. Use [FastRoot](https://github.com/uym2/MinVar-Rooting) to root the tree on the outgroup
+## Command
+```bash
+FastRoot.py -i UNROOTED_TREE.NWK -m OG -g OUTGROUP
+```
+
+## Example
+```bash
+FastRoot.py -i consensus.trimmed.aln.treefile -m OG -g "hCoV-19/bat/Yunnan/RmYN02/2019|EPI_ISL_412977|2019-06-25"
+```
 
 # Step 4: Pangolin Lineage Assignment
 * **Input:** FASTA file containing unaligned genomes (`X.fas`)
