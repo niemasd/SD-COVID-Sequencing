@@ -2,7 +2,7 @@
 Given a bunch of assembled SARS-CoV-2 genomes, this document will provide step-by-step commands to align the genomes and infer a phylogeny.
 
 # Step 1: Multiple Sequence Alignment (MSA)
-* **Input:** FASTA file containing unaligned genomes (`X.fas`)
+* **Input:** FASTA file containing unaligned genomes (`X.fas`), which should include the [outgroup sequence (RmYN02)](reference_genome/RmYN02.fas)
 * **Output:** FASTA file containing the MSA (`X.aln`)
 
 ## Command
