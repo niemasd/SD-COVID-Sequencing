@@ -64,6 +64,30 @@ FastRoot.py -i UNROOTED_TREE.NWK -m OG -g OUTGROUP
 FastRoot.py -i consensus.trimmed.aln.treefile -m OG -g "hCoV-19/bat/Yunnan/RmYN02/2019|EPI_ISL_412977|2019-06-25"
 ```
 
+# Step 3.3: Rename the Leaves
+The leaves will have ugly names that include a bunch of info beyond the sample name, but we may want to strip out the extra info to just have labels be sample names (Yoshiki from Rob's lab asked for this). I wrote the following script (`rename_samples.py`) to do so:
+
+```python
+#!/usr/bin/env python3
+from sys import argv
+if len(argv) != 3:
+    print("USAGE: %s <input_tree> <output_tree>" % argv[0]); exit(1)
+import re
+pattern = re.compile('_(L00\d|S\d{1,4})[_\.].*')
+from treeswift import read_tree_newick
+tree = read_tree_newick(argv[1])
+for node in tree.traverse_leaves():
+    match = pattern.search(node.label)
+    if match:
+        node.label = node.label[:match.start(0)]
+f = open(argv[2],'w'); f.write(tree.newick()); exit()
+```
+
+## Command
+```bash
+./rename_samples ROOTED_TREE.NWK RENAMED_ROOTED_TREE.NWK
+```
+
 # Step 4: Pangolin Lineage Assignment
 * **Input:** FASTA file containing unaligned genomes (`X.fas`)
 * **Output:** Assigned Pangolin lineages (`X.pangolin.csv`)
