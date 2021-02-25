@@ -80,7 +80,8 @@ for node in tree.traverse_leaves():
     match = pattern.search(node.label)
     if match:
         node.label = node.label[:match.start(0)]
-f = open(argv[2],'w'); f.write(tree.newick()); exit()
+    node.label = node.label.replace(' ','_').replace('Consensus_','').replace('EXC_Pt','EXC_PT')
+f = open(argv[2],'w'); f.write(tree.newick()); f.close()
 ```
 
 ## Command
