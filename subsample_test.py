@@ -20,7 +20,14 @@ from glob import glob
 from json import load as json_load
 import matplotlib.pyplot as plt
 from os.path import isdir
+from seaborn import violinplot
 from sys import argv
+
+# hamming distance
+def hamming(s,t):
+    if len(s) != len(t):
+        return None
+    return sum(s[i] != t[i] for i in range(len(s)))/len(s)
 
 # check user arguments
 if len(argv) != 3:
@@ -62,8 +69,10 @@ else:
                 passed_IDs.add(row[fields['sample']])
 
 # measure the deltas
-x = list() # total number of mapped reads
-y = list() # proportion of passed_IDs that yielded identical consensus sequence in non-ignored range
+x_prop_identical = list() # total number of mapped reads
+y_prop_identical = list() # proportion of passed_IDs that yielded identical consensus sequence in non-ignored range
+x_hamming = list() # total number of mapped reads
+y_hamming = list() # hamming distance between consensus sequences of same length
 for run_folder in glob('%s/*' % argv[1]):
     # ignore non-folders and "full" folder
     if not isdir(run_folder) or run_folder.split('/')[-1] == argv[2] or run_folder.split('/')[-1].lower().startswith('full_'):
@@ -100,6 +109,11 @@ for run_folder in glob('%s/*' % argv[1]):
             # get trimmed substrings
             sub_substring = sub_consensus[sub_substring_start : sub_substring_end]
             full_substring = full_consensus[full_substring_start : full_substring_end]
+            
+            # compute hamming distances
+            h = hamming(sub_substring, full_substring)
+            if h is not None:
+                x_hamming.append(run_folder); y_hamming.append(h)
 
             # if identical, success
             if sub_substring == full_substring:
@@ -113,13 +127,20 @@ for run_folder in glob('%s/*' % argv[1]):
 
     # add this point to the output
     if summary_present:
-        x.append(n); y.append(identical/len(passed_IDs))
+        x_prop_identical.append(n); y_prop_identical.append(identical/len(passed_IDs))
     else:
-        x.append(run_folder); y.append(identical/n)
+        x_prop_identical.append(run_folder); y_prop_identical.append(identical/n)
 
-# plot scatterplot
-plt.scatter(x, y)
-plt.title("Subsampling Experiment")
+# plot identical consensus scatterplot
+plt.scatter(x_prop_identical, y_prop_identical)
+plt.title("Subsampling Experiment Prop. Identical")
 plt.xlabel("Maximum Allowed Number of Mapped Reads")
 plt.ylabel("Prop. Samples w/ Identical Consensus\n(ignore first %d and last %d positions of reference)" % (IGNORE_FIRST, IGNORE_LAST))
+plt.show()
+
+# plot Hamming distance violin plot
+violinplot(x=x_hamming, y=y_hamming)
+plt.title("Subsampling Experiment")
+plt.xlabel("Maximum Allowed Number of Mapped Reads")
+plt.ylabel("Hamming Distance\n(ignore first %d and last %d positions of reference)" % (IGNORE_FIRST, IGNORE_LAST))
 plt.show()
