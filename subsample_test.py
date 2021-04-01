@@ -27,33 +27,39 @@ if len(argv) != 3:
     print("USAGE: %s <subsample_test_global_folder> <nested_full_folder>" % argv[0]); exit(1)
 
 # see which samples passed the full run
-passed_IDs = set()
-full_summary_csv_path = list(glob('%s/%s/*_quality_control/*-summary.csv' % (argv[1], argv[2])))[0]
-flag_inds_true = set()
-flag_inds_false = set()
-fields = dict() # fields[name of field] = index
-for row in csv_reader(open(full_summary_csv_path)):
-    # first row, so find flag columns
-    if len(fields) == 0:
-        for col,name in enumerate(row):
-            field_name = name.strip().lower()
-            fields[field_name] = col
-            if field_name in {'is_accepted'}: # should be TRUE
-                flag_inds_true.add(col)
-            elif field_name in {}:#'indels_flagged'}: # should be FALSE
-                flag_inds_false.add(col)
+try:
+    full_summary_csv_path = list(glob('%s/%s/*_quality_control/*-summary.csv' % (argv[1], argv[2])))[0]
+except:
+    full_summary_csv_path = None
+if full_summary_csv_path is None:
+    passed_IDs = None
+else:
+    passed_IDs = set()
+    flag_inds_true = set()
+    flag_inds_false = set()
+    fields = dict() # fields[name of field] = index
+    for row in csv_reader(open(full_summary_csv_path)):
+        # first row, so find flag columns
+        if len(fields) == 0:
+            for col,name in enumerate(row):
+                field_name = name.strip().lower()
+                fields[field_name] = col
+                if field_name in {'is_accepted'}: # should be TRUE
+                    flag_inds_true.add(col)
+                elif field_name in {}:#'indels_flagged'}: # should be FALSE
+                    flag_inds_false.add(col)
 
-    # not first row, so check if this sample passed all flags
-    else:
-        passed_all = True
-        for col in flag_inds_true:
-            if row[col].strip().lower() != 'true':
-                passed_all = False; break
-        for col in flag_inds_false:
-            if row[col].strip().lower() != 'false':
-                passed_all = False; break
-        if passed_all:
-            passed_IDs.add(row[fields['sample']])
+        # not first row, so check if this sample passed all flags
+        else:
+            passed_all = True
+            for col in flag_inds_true:
+                if row[col].strip().lower() != 'true':
+                    passed_all = False; break
+            for col in flag_inds_false:
+                if row[col].strip().lower() != 'false':
+                    passed_all = False; break
+            if passed_all:
+                passed_IDs.add(row[fields['sample']])
 
 # measure the deltas
 x = list() # total number of mapped reads
@@ -64,20 +70,24 @@ for run_folder in glob('%s/*' % argv[1]):
         continue
 
     # compute the "total number of successfully mapped reads" limit of this run
-    n = max(int(float(row[fields['mapped_reads']])) for row in csv_reader(open(list(glob('%s/*_quality_control/*-summary.csv' % run_folder))[0])) if row[fields['mapped_reads']].lower().strip() not in {'','mapped_reads'})
+    try:
+        n = max(int(float(row[fields['mapped_reads']])) for row in csv_reader(open(list(glob('%s/*_quality_control/*-summary.csv' % run_folder))[0])) if row[fields['mapped_reads']].lower().strip() not in {'','mapped_reads'})
+        summary_present = True
+    except:
+        n = 0.; summary_present = False
 
     # check each sample
     identical = 0.
-    for sample_folder in glob('%s/*_samples/*' % run_folder):
+    for sample_folder in glob('%s/*' % run_folder): # TODO this changed across runs
         sample_ID = sample_folder.split('/')[-1].strip()
-        if sample_ID in passed_IDs:
+        if passed_IDs is None or sample_ID in passed_IDs:
             # load subsampled and full alignments
             sub_alignment = json_load(open(list(glob('%s/*.align.json' % sample_folder))[0]))
-            full_alignment = json_load(open(list(glob('%s/%s/*_samples/%s*/*.align.json' % (argv[1], argv[2], sample_ID)))[0]))
+            full_alignment = json_load(open(list(glob('%s/%s/%s*/*.align.json' % (argv[1], argv[2], sample_ID)))[0])) # TODO this changed across runs
 
             # extract subsampled and full consensus sequences
             sub_consensus = ''.join(l.strip() for l in open(list(glob('%s/*.consensus.fa' % sample_folder))[0]).read().splitlines() if not l.startswith('>'))
-            full_consensus = ''.join(l.strip() for l in open(list(glob('%s/%s/*_samples/%s*/*.consensus.fa' % (argv[1], argv[2], sample_ID)))[0]).read().splitlines() if not l.startswith('>'))
+            full_consensus = ''.join(l.strip() for l in open(list(glob('%s/%s/%s*/*.consensus.fa' % (argv[1], argv[2], sample_ID)))[0]).read().splitlines() if not l.startswith('>')) # TODO this changed across runs
 
             # get start indices (inclusive) of non-ignored windows
             sub_substring_start = sub_alignment['cons_first_orf_start_0based'] - ORF_START_TO_SUBSTRING_START
@@ -97,8 +107,15 @@ for run_folder in glob('%s/*' % argv[1]):
             else: # debug
                 pass#print(sub_substring); print(full_substring) # debug
 
+            # if no summary.csv is present, keep track of the number of samples
+            if not summary_present:
+                n += 1
+
     # add this point to the output
-    x.append(n); y.append(identical/len(passed_IDs))
+    if summary_present:
+        x.append(n); y.append(identical/len(passed_IDs))
+    else:
+        x.append(run_folder); y.append(identical/n)
 
 # plot scatterplot
 plt.scatter(x, y)
