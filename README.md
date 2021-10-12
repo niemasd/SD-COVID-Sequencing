@@ -3,6 +3,6 @@ My scripts/notes from the San Diego COVID sequencing effort. To see the general 
 
 https://github.com/niemasd/ViReflow
 
-To see the instantiation of the pipeline actually being used in San Diego County, see C-VIEW:
+To see the expanded instantiation of the pipeline actually being used in San Diego County, see C-VIEW:
 
 https://github.com/ucsd-ccbb/C-VIEW
