@@ -166,7 +166,7 @@ cat PILEUP.TXT | ivar variants -r REFERENCE.FAS -g REFERENCE.GFF -p VARIANTS.TSV
 
 ## Batch Command (64 threads)
 ```bash
-parallel --jobs 64 "{" time "(" cat {}.trimmed.sorted.pileup.txt.gz "|" ivar variants -r ../ref/NC_045512.2.fas -g ../ref/NC_045512.2.gff3 -p {}.trimmed.sorted.pileup.variants.tsv -m 10 ")" ";" "}" "2>" {}.log.5.variants.log ::: $(ls *.trimmed.sorted.pileup.txt.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
+parallel --jobs 64 "{" time "(" zcat {}.trimmed.sorted.pileup.txt.gz "|" ivar variants -r ../ref/NC_045512.2.fas -g ../ref/NC_045512.2.gff3 -p {}.trimmed.sorted.pileup.variants.tsv -m 10 ")" ";" "}" "2>" {}.log.5.variants.log ::: $(ls *.trimmed.sorted.pileup.txt.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
 ```
 
 # Step 6: Call Consensus Sequence from Pile-Up
@@ -191,7 +191,7 @@ cat PILEUP.TXT | ivar consensus -p CONSENSUS.FAS -m 10 -n N -t 0.5
 
 ## Batch Command (64 threads)
 ```bash
-parallel --jobs 64 "{" time "(" cat {}.trimmed.sorted.pileup.txt.gz "|" ivar consensus -p {}.trimmed.sorted.pileup.consensus -m 10 -n N -t 0.5 ")" ";" "}" ">" {}.log.6.consensus.log "2>&1" ::: $(ls *.trimmed.sorted.pileup.txt.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
+parallel --jobs 64 "{" time "(" zcat {}.trimmed.sorted.pileup.txt.gz "|" ivar consensus -p {}.trimmed.sorted.pileup.consensus -m 10 -n N -t 0.5 ")" ";" "}" ">" {}.log.6.consensus.log "2>&1" ::: $(ls *.trimmed.sorted.pileup.txt.gz | sed 's/_R[12]_/./g' | cut -d'.' -f1 | sort | uniq)
 ```
 
 # Step 7: Call Depth (supplemental summary stats)
