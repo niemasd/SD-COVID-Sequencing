@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Download BAMs from the Genexus machine
-# Version 1.0.0 (2022-03-21) (Niema Moshiri)
+# Version 1.0.1 (2022-05-04) (Niema Moshiri)
 
 # important constants
 GENEXUS_USERNAME='ionservice'
@@ -21,9 +21,9 @@ else
     echo "List of EXC names not found: $1" ; exit 1
 fi
 for exc in $(cat "$1") ; do
-    if [[ "$exc" != EXC_*_* || "$exc" == EXC_*_*_* ]] ; then
-        echo "Invalid EXC name: $exc"
-        echo "Must follow EXC_???_?????? (e.g. EXC_MW5_503759)"
+    if [[ ("$exc" != EXC_*_* || "$exc" == EXC_*_*_*) && ("$exc" != CALM_*_*_*) ]] ; then
+        echo "Invalid EXC/CALM name: $exc"
+        echo "Must follow EXC_???_?????? (e.g. EXC_MW5_503759) or CALM_???_??????_?? (e.g. CALM_SEP_008217_16)"
         exit 1
     fi
 done
