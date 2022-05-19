@@ -286,7 +286,7 @@ freyja demix <IVAR_VARIANTS_TSV> <DEPTH_FILE> --output <OUTPUT_TSV>
   * In other words, `<DEPTH_FILE>` is just `cat PILEUP.TXT | cut -f1-4` (or `zcat` instead of `cat` if the pile-up is gzipped)
 * `<OUTPUT_TSV>` is the Freyja output, which is described [here](https://github.com/andersen-lab/Freyja#usage)
 
-To run Freyja Demix directly on a pile-up file, we can use named pipes (replace `cat` with `zcat` if the pile-up is gzipped):
+To run Freyja Demix and `pi_from_pileup` on a pile-up file from an AWS S3 path, here's a helper script:
 
 ```bash
 #!/usr/bin/env bash
@@ -295,7 +295,8 @@ if [ "$#" -ne 1 ] ; then
 fi
 f="$(echo $1 | rev | cut -d'/' -f1 | rev)"
 aws s3 cp "$1" .
-cat "$f" | ivar variants -r "NC_045512.2.fas" -g "NC_045512.2.gff3" -p "$f" -m 10 -t 0
-freyja demix "$f.tsv" <(cat "$f" | cut -f1-4) --output "$f.freyja.tsv" > "$f.freyja.log" 2>&1
-rm -f "$f" "$f.tsv
+cat "$f" | ivar variants -r "NC_045512.2.fas" -g "NC_045512.2.gff3" -p "$f.variants" -m 10 -t 0
+freyja demix "$f.variants.tsv" <(cat "$f" | cut -f1-4) --output "$f.freyja.tsv" > "$f.freyja.log" 2>&1
+pi_from_pileup "$f" > "$f.pi.tsv"
+rm -f "$f" "$f.variants.tsv"
 ```
