@@ -295,7 +295,7 @@ if [ "$#" -ne 1 ] ; then
 fi
 f="$(echo $1 | rev | cut -d'/' -f1 | rev)"
 aws s3 cp "$1" .
-cat "$f" | ivar variants -r "NC_045512.2.fas" -g "NC_045512.2.gff3" -p tmp -m 10 -t 0
-freyja demix tmp.tsv <(cat "$f" | cut -f1-4) --output "$f.freyja.tsv" > "$f.freyja.log" 2>&1
-rm -f "$f" tmp.tsv
+cat "$f" | ivar variants -r "NC_045512.2.fas" -g "NC_045512.2.gff3" -p "$f" -m 10 -t 0
+freyja demix "$f.tsv" <(cat "$f" | cut -f1-4) --output "$f.freyja.tsv" > "$f.freyja.log" 2>&1
+rm -f "$f" "$f.tsv
 ```
