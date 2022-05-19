@@ -285,3 +285,9 @@ freyja demix <IVAR_VARIANTS_TSV> <DEPTH_FILE> --output <OUTPUT_TSV>
 * `<DEPTH_FILE>` is a file containing the depth at each position, and it's just the first 4 columns of the [pile-up file](#step-4-generate-pile-up-from-trimmed-sorted-bam)
   * In other words, `<DEPTH_FILE>` is just `cat PILEUP.TXT | cut -f1-4` (or `zcat` instead of `cat` if the pile-up is gzipped)
 * `<OUTPUT_TSV>` is the Freyja output, which is described [here](https://github.com/andersen-lab/Freyja#usage)
+
+To run Freyja Demix directly on a pile-up file, we can use named pipes (replace `cat` with `zcat` if the pile-up is gzipped):
+
+```bash
+freyja demix  <(cat PILEUP.TXT | ivar variants -r REFERENCE.FAS -g REFERENCE.GFF -p VARIANTS.TSV -m 10 -t 0) <(cat PILEUP.TXT | cut -f1-4) --output FREYJA.TSV
+```
