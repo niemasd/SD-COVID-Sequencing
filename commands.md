@@ -286,6 +286,8 @@ freyja demix <IVAR_VARIANTS_TSV> <DEPTH_FILE> --output <OUTPUT_TSV>
   * In other words, `<DEPTH_FILE>` is just `cat PILEUP.TXT | cut -f1-4` (or `zcat` instead of `cat` if the pile-up is gzipped)
 * `<OUTPUT_TSV>` is the Freyja output, which is described [here](https://github.com/andersen-lab/Freyja#usage)
 
+## Bulk Execution from AWS S3 Paths
+
 To run Freyja Demix and `pi_from_pileup` on a pile-up file from an AWS S3 path, here's a helper script:
 
 ```bash
