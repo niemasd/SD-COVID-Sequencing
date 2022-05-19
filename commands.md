@@ -289,5 +289,13 @@ freyja demix <IVAR_VARIANTS_TSV> <DEPTH_FILE> --output <OUTPUT_TSV>
 To run Freyja Demix directly on a pile-up file, we can use named pipes (replace `cat` with `zcat` if the pile-up is gzipped):
 
 ```bash
-freyja demix  <(cat PILEUP.TXT | ivar variants -r REFERENCE.FAS -g REFERENCE.GFF -p VARIANTS.TSV -m 10 -t 0) <(cat PILEUP.TXT | cut -f1-4) --output FREYJA.TSV
+#!/usr/bin/env bash
+if [ "$#" -ne 1 ] ; then
+    echo "USAGE: $0 <pileup_txt_s3_path>" ; exit 1
+fi
+f="$(echo $1 | rev | cut -d'/' -f1 | rev)"
+aws s3 cp "$1" .
+cat "$f" | ivar variants -r "NC_045512.2.fas" -g "NC_045512.2.gff3" -p tmp -m 10 -t 0
+freyja demix tmp.tsv <(cat "$f" | cut -f1-4) --output "$f.freyja.tsv" > "$f.freyja.log" 2>&1
+rm -f "$f" tmp.tsv
 ```
