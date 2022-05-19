@@ -272,3 +272,16 @@ samtools_depth_lineplot.py *.depth.txt && mv depth_lineplot.pdf output/
 samtools_depth_concat.py *.depth.txt > output/depth.tsv
 samtools_depth_low.py 266 29674 10 *.depth.txt > output/depth_below_10.tsv
 ```
+
+# Freyja
+The Andersen Lab has recently developed [Freyja](https://github.com/andersen-lab/Freyja) to "recover relative lineage abundances from mixed SARS-CoV-2 samples from a sequencing dataset". Once it's installed, here's how it can be run to "demix" a dataset:
+
+```bash
+freyja demix <IVAR_VARIANTS_TSV> <DEPTH_FILE> --output <OUTPUT_TSV>
+```
+* `<IVAR_VARIANTS_TSV>` is the TSV output file of [iVar Variants](#step-5-call-variants-from-pile-up)
+  * When he runs iVar Variants for this, [Josh Levy](https://github.com/joshuailevy) (the Freyja developer) says he uses a minimum variant frequency threshold of 0% (rather than iVar Variant's default of 3%, [which we use](#individual-command-4))
+  * If we choose to add Freyja to this pipeline, we should change our iVar Variants call to use 0% as the threshold (`-t 0`) to get *all* variants, and then we can filter the output file to remove any variants with less than 3% frequency to get the "true variants"
+* `<DEPTH_FILE>` is a file containing the depth at each position, and it's just the first 4 columns of the [pile-up file](#step-4-generate-pile-up-from-trimmed-sorted-bam)
+  * In other words, `<DEPTH_FILE>` is just `cat PILEUP.TXT | cut -f1-4` (or `zcat` instead of `cat` if the pile-up is gzipped)
+* `<OUTPUT_TSV>` is the Freyja output, which is described [here](https://github.com/andersen-lab/Freyja#usage)
